@@ -1,3 +1,4 @@
+require 'hashie'
 require 'spec_helper'
 
 describe Rip::Parser do
@@ -36,7 +37,7 @@ describe Rip::Parser do
         'Kernel',
         'returner'
       ].each do |reference|
-        expect(reference).to parse_as(:module => [ { :reference => reference } ])
+        expect(reference).to parse_as(Hashie::Mash.new(:module => [ { :reference => reference } ]))
       end
     end
 
@@ -48,7 +49,7 @@ describe Rip::Parser do
         'rip rocks',
         'key:value'
       ].each do |non_reference|
-        expect(non_reference).to_not parse_as([ { :reference => non_reference } ])
+        expect(non_reference).to_not parse_as({ :reference => non_reference })
       end
     end
   end
@@ -76,7 +77,7 @@ describe Rip::Parser do
             }
           ]
         }
-        expect(rip).to parse_as(expected)
+        expect(rip).to parse_as(Hashie::Mash.new(expected))
       end
     end
   end

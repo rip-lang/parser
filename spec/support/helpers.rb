@@ -1,3 +1,5 @@
+require 'hashie'
+
 module RSpecHelpers
   def recognizes_as_expected(description, *flags, &block)
     context description, *flags do
@@ -8,7 +10,7 @@ module RSpecHelpers
         end
 
         if defined? expected
-          expect(rip).to parse_as(expected)
+          expect(rip).to parse_as(Hashie::Mash.new(expected))
         end
       end
     end

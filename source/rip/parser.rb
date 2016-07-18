@@ -1,3 +1,5 @@
+require 'hashie'
+
 module Rip
   module Parser
     def self.load_file(module_path)
@@ -5,7 +7,8 @@ module Rip
     end
 
     def self.tree(origin, source_code)
-      Rip::Parser::Normalizer.apply(raw_tree(origin, source_code))
+      reply = Rip::Parser::Normalizer.apply(raw_tree(origin, source_code))
+      Hashie::Mash.new(reply)
     end
 
     def self.raw_tree(origin, source_code)
