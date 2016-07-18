@@ -6,6 +6,10 @@ module Rip
       tree(module_path.expand_path, module_path.read)
     end
 
+    def self.root
+      Pathname.new(__dir__).parent.parent
+    end
+
     def self.tree(origin, source_code)
       reply = Rip::Parser::Normalizer.apply(raw_tree(origin, source_code))
       Hashie::Mash.new(reply)

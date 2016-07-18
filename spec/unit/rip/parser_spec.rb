@@ -2,6 +2,10 @@ require 'hashie'
 require 'spec_helper'
 
 describe Rip::Parser do
+  describe '.root' do
+    specify { expect(Rip::Parser.root).to eq(Pathname.new(__dir__).parent.parent.parent.expand_path) }
+  end
+
   recognizes_as_expected 'several statements together' do
     let(:rip) do
       strip_heredoc(<<-RIP)

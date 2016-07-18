@@ -4,12 +4,14 @@ module Rip::Parser
     attr_reader :offset  # zero-based offset from begining of file
     attr_reader :line    # one-based line number
     attr_reader :column  # one-based character on line
+    attr_reader :length  # how many characters are covered
 
-    def initialize(origin, offset, line, column)
+    def initialize(origin, offset, line, column, length = 0)
       @origin = origin
       @offset = offset
       @line = line
       @column = column
+      @length = length
     end
 
     def ==(other)
@@ -18,11 +20,11 @@ module Rip::Parser
     end
 
     def add_character(count = 1)
-      self.class.new(origin, offset + count, line, column + count)
+      self.class.new(origin, offset + count, line, column + count, length)
     end
 
     def add_line(count = 1)
-      self.class.new(origin, offset + count, line + count, 1)
+      self.class.new(origin, offset + count, line + count, 1, length)
     end
 
     def inspect
@@ -34,7 +36,12 @@ module Rip::Parser
     end
 
     def to_debug
-      "#{line}:#{column}(#{offset})"
+      offset_length = length.zero? ? offset : (offset..(offset + length - 1))
+      "#{line}:#{column}(#{offset_length})"
+    end
+
+    def self.from_slice(origin, slice, length = slice.length)
+      new(origin, slice.offset, *slice.line_and_column, length)
     end
   end
 end
