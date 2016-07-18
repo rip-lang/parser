@@ -1,55 +1,6 @@
 require 'spec_helper'
 
 describe Rip::Parser do
-  context 'some basics' do
-    it 'parses an empty module' do
-      expect('').to parse_as(:module => [])
-    end
-
-    it 'parses an empty string module' do
-      expect('       ').to parse_as(:module => '       ')
-    end
-
-    it 'ignores comments as whitespace' do
-      expect('# this is a comment').to parse_as(:module => '# this is a comment')
-    end
-
-    it 'recognizes various whitespace sequences' do
-      {
-        [' ', "\t", "\r", "\n", "\r\n"] => :whitespace,
-        [' ', "\t\t"]                   => :whitespaces,
-        ['', "\n", "\t\r"]              => :whitespaces?,
-        [' ', "\t"]                     => :space,
-        [' ', "\t\t", "  \t  \t  "]     => :spaces,
-        ['', ' ', "  \t  \t  "]         => :spaces?,
-        ["\n", "\r", "\r\n"]            => :line_break,
-        ["\r\n\r\n", "\n\n"]            => :line_breaks,
-        ['', "\r\n\r\n", "\n\n"]        => :line_breaks?
-      }.each do |whitespaces, method|
-        space_parser = Rip::Parser::Rules.new.send(method)
-        whitespaces.each do |space|
-          expect(space_parser).to parse(space).as(space)
-        end
-      end
-    end
-
-    context 'comma-separation' do
-      let(:csv_parser) do
-        parser = Rip::Parser::Rules.new
-        parser.send(:csv, parser.send(:str, 'x').as(:x)).as(:csv)
-      end
-      let(:expected_x) { { :x => 'x' } }
-
-      it 'recognizes comma-separated atoms' do
-        expect(csv_parser).to parse('').as(:csv => [])
-        expect(csv_parser).to parse('x').as(:csv => [expected_x])
-        expect(csv_parser).to parse('x,x,x').as(:csv => [expected_x, expected_x, expected_x])
-        expect(csv_parser).to_not parse('xx')
-        expect(csv_parser).to_not parse('x,xx')
-      end
-    end
-  end
-
   recognizes_as_expected 'several statements together' do
     let(:rip) do
       strip_heredoc(<<-RIP)

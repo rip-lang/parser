@@ -1,6 +1,8 @@
 require 'spec_helper'
 
-describe Rip::Parser::Rules do
+describe Rip::Parser::Rules, :blur do
+  let(:rules) { Rip::Parser::Rules.new }
+
   context 'some basics' do
     it 'parses an empty module' do
       expect('').to parse_raw_as(:module => [])
@@ -115,70 +117,6 @@ describe Rip::Parser::Rules do
           }
         ]
       }
-    end
-  end
-
-  describe '#reference' do
-    it 'recognizes valid references, including predefined references' do
-      [
-        'name',
-        'Person',
-        '==',
-        'save!',
-        'valid?',
-        'long_ref-name',
-        '*-+&$~%',
-        'one_9',
-        'É¹ÇÊ‡É¹oÔ€uÉlâˆ€â„¢',
-        'nilly',
-        'nil',
-        'true',
-        'false',
-        'Kernel',
-        'returner'
-      ].each do |reference|
-        expect(reference).to parse_raw_as(:module => [ { :reference => reference } ])
-      end
-    end
-
-    it 'skips invalid references' do
-      [
-        'one.two',
-        '999',
-        '6teen',
-        'rip rocks',
-        'key:value'
-      ].each do |non_reference|
-        expect(non_reference).to_not parse_raw_as([ { :reference => non_reference } ])
-      end
-    end
-  end
-
-  describe '#property_name' do
-    it 'recognizes special-case property names' do
-      [
-        '/',
-        '<=>',
-        '<',
-        '<<',
-        '<=',
-        '>',
-        '>>',
-        '>=',
-        '[]'
-      ].each do |property_name|
-        rip = "@.#{property_name}"
-        expected = {
-          :module => [
-            {
-              :object => { :reference => '@' },
-              :location => '.',
-              :property_name => property_name
-            }
-          ]
-        }
-        expect(rip).to parse_raw_as(expected)
-      end
     end
   end
 

@@ -1,5 +1,9 @@
 module Rip
   module Parser
+    def self.load_file(module_path)
+      tree(module_path.expand_path, module_path.read)
+    end
+
     def self.tree(origin, source_code)
       Rip::Parser::Normalizer.apply(raw_tree(origin, source_code))
     end

@@ -1,14 +1,9 @@
-require 'coveralls'
-
-Coveralls.wear!
-
 require 'pry'
-require 'ruby-prof'
 
 require_relative '../source/rip-parser'
 
-pattern = Pathname.new(__dir__) + 'support' + '**' + '*.rb'
-Pathname.glob(pattern).each { |file| require file }
+pattern = Pathname.new(__dir__).join('support/**/*.rb')
+Pathname.glob(pattern).each(&method(:require))
 
 RSpec.configure do |config|
   config.run_all_when_everything_filtered = true
