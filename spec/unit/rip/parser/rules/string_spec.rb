@@ -13,6 +13,16 @@ RSpec.describe Rip::Parser::Rules::String do
     it { should parse(':rip') }
     it { should parse('""') }
     it { should parse('"foo-bar-baz"') }
+
+    it do
+      should parse(strip_heredoc(<<-RIP))
+        <<DOC
+          foo
+          bar
+          baz
+        DOC
+      RIP
+    end
   end
 
   describe '#string_symbol' do
@@ -68,23 +78,45 @@ RSpec.describe Rip::Parser::Rules::String do
   describe '#heredoc' do
     subject { parser.heredoc }
 
-    let(:rip) do
-      strip_heredoc(<<-RIP)
-        <<BLOCK
-        multi-line
-        string
-        BLOCK
-      RIP
+    context 'normal' do
+      let(:rip) do
+        strip_heredoc(<<-RIP)
+          <<BLOCK
+          multi-line
+          string
+          BLOCK
+        RIP
+      end
+
+      it do
+        should parse(rip).as(location: "<<BLOCK\n", string: [
+          { character: 'm' }, { character: 'u' }, { character: 'l' }, { character: 't' },
+          { character: 'i' }, { character: '-' }, { character: 'l' }, { character: 'i' },
+          { character: 'n' }, { character: 'e' }, { character: "\n" }, { character: 's' },
+          { character: 't' }, { character: 'r' }, { character: 'i' }, { character: 'n' },
+          { character: 'g' }, { character: "\n" }
+        ])
+      end
     end
 
-    it do
-      should parse(rip).as(location: '<<', string: [
-        { character: 'm' }, { character: 'u' }, { character: 'l' }, { character: 't' },
-        { character: 'i' }, { character: '-' }, { character: 'l' }, { character: 'i' },
-        { character: 'n' }, { character: 'e' }, { character: "\n" }, { character: 's' },
-        { character: 't' }, { character: 'r' }, { character: 'i' }, { character: 'n' },
-        { character: 'g' }, { character: "\n" }
-      ])
+    context 'pathelogical' do
+      let(:rip) do
+        strip_heredoc(<<-RIP)
+          <<BLOCK
+
+          \\tfoo
+
+          BLOCK
+        RIP
+      end
+
+      it do
+        should parse(rip).as(location: "<<BLOCK\n", string: [
+          { character: "\n" },
+          { character: { escape_special: 't' } }, { character: 'f' }, { character: 'o' }, { character: 'o' }, { character: "\n" },
+          { character: "\n" }
+        ])
+      end
     end
   end
 end

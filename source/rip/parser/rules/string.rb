@@ -10,7 +10,7 @@ module Rip::Parser::Rules
     include Rip::Parser::Rules::Common
     include Rip::Parser::Rules::Character
 
-    rule(:string) { string_symbol | string_double }
+    rule(:string) { string_symbol | string_double | heredoc }
 
     rule(:string_symbol) { colon.as(:location) >> character_legal.as(:character).repeat(1).as(:string) }
 
@@ -20,18 +20,11 @@ module Rip::Parser::Rules
     rule(:quote_single) { str('\'') }
     rule(:quote_double) { str('"') }
 
-    rule(:heredoc) do
-      scope do
-        heredoc_start >> heredoc_content.as(:string) >> heredoc_end
-      end
-    end
+    rule(:heredoc) { heredoc_start.as(:location) >> heredoc_content.as(:string) >> heredoc_end }
 
-    rule(:heredoc_start) { angled_open.repeat(2, 2).as(:location) >> heredoc_label >> line_break }
-    rule(:heredoc_label) { match['A-Z_'].repeat(1).capture(:heredoc_label) }
+    rule(:heredoc_start) { angled_open.repeat(2, 2) >> match['A-Z_'].repeat(1).capture(:heredoc_label) >> line_break }
 
-    rule(:heredoc_content) { (heredoc_end.absent? >> heredoc_line).repeat }
-    rule(:heredoc_line) { (line_break.absent? >> heredoc_content_any).repeat >> line_break.as(:character) }
-    rule(:heredoc_content_any) { escape_sequence.as(:character) | any.as(:character) }
+    rule(:heredoc_content) { (heredoc_end.absent? >> (escape_sequence | any).as(:character)).repeat }
 
     rule(:heredoc_end) do
       dynamic do |source, context|
