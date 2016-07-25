@@ -25,13 +25,13 @@ module Rip::Parser::Rules
       tab_vertical:    'v'
     }
 
-    rule(:character) { backtick.as(:location) >> (escape_sequence | character_legal).as(:character) }
+    rule(:character) { backtick.as(:location) >> (escape_sequence | character_legal.as(:character)) }
 
     rule(:character_legal) { digit | word_legal }
 
     rule(:backtick) { str('`') }
 
-    rule(:escape_sequence) { slash_back >> (escape_sequence_unicode | escape_sequence_special | escape_sequence_any) }
+    rule(:escape_sequence) { slash_back.as(:escape_location) >> (escape_sequence_unicode | escape_sequence_special | escape_sequence_any) }
 
     rule(:escape_sequence_unicode) { str('u') >> match['0-9a-f'].repeat(4, 4).as(:escape_unicode) }
     rule(:escape_sequence_special) { SPECIAL_ESCAPES.values.map(&method(:str)).inject(&:|).as(:escape_special) }

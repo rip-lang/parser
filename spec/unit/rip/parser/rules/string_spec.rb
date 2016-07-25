@@ -57,7 +57,7 @@ RSpec.describe Rip::Parser::Rules::String do
     it do
       should parse('"a\nb"').as(location: '"', string: [
         { character: 'a' },
-        { character: { escape_special: 'n' } },
+        { escape_location: '\\', escape_special: 'n' },
         { character: 'b' }
       ])
     end
@@ -69,7 +69,7 @@ RSpec.describe Rip::Parser::Rules::String do
     it do
       should parse('/r\.p/').as(location: '/', regular_expression: [
         { character: 'r' },
-        { character: { escape_any: '.' } },
+        { escape_location: '\\', escape_any: '.' },
         { character: 'p' }
       ])
     end
@@ -113,7 +113,7 @@ RSpec.describe Rip::Parser::Rules::String do
       it do
         should parse(rip).as(location: "<<BLOCK\n", string: [
           { character: "\n" },
-          { character: { escape_special: 't' } }, { character: 'f' }, { character: 'o' }, { character: 'o' }, { character: "\n" },
+          { escape_location: '\\', escape_special: 't' }, { character: 'f' }, { character: 'o' }, { character: 'o' }, { character: "\n" },
           { character: "\n" }
         ])
       end
