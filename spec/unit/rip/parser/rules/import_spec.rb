@@ -22,6 +22,17 @@ RSpec.describe Rip::Parser::Rules::Import do
     end
 
     it do
+      should parse('import(:bar)').as(import: 'import', module_name: {
+        location: ':',
+        string: [
+          { character: 'b' },
+          { character: 'a' },
+          { character: 'r' }
+        ]
+      })
+    end
+
+    it do
       should parse('import "bar"').as(import: 'import', module_name: {
         location: '"',
         string: [

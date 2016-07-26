@@ -12,6 +12,12 @@ module Rip::Parser::Rules
     include Rip::Parser::Rules::Keyword
     include Rip::Parser::Rules::String
 
-    rule(:import) { keyword(:import) >> spaces >> (string_symbol | string_double).as(:module_name) }
+    rule(:import) { keyword(:import) >> (import_bare | import_parens) }
+
+    rule(:import_bare) { spaces >> module_name }
+
+    rule(:import_parens) { parenthesis_open >> module_name >> spaces? >> parenthesis_close }
+
+    rule(:module_name) { spaces? >> (string_symbol | string_double).as(:module_name) }
   end
 end
