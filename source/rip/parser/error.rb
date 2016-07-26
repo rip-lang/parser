@@ -20,4 +20,17 @@ module Rip::Parser
       @code = 11
     end
   end
+
+  class NormalizeError < Error
+    attr_reader :origin
+    attr_reader :raw_tree
+
+    def initialize(message, origin, raw_tree)
+      super(message)
+
+      @origin = origin
+      @raw_tree = raw_tree
+      @code = 12
+    end
+  end
 end

@@ -12,6 +12,23 @@ module Rip::Parser::Utilities
     end
 
 
+    rule(subtree(:tree)) do |tree:, origin:|
+      if tree.is_a?(Hash)
+        raise Rip::Parser::NormalizeError.new('Unhandled raw syntax tree node', origin, tree)
+      else
+        tree
+      end
+    end
+
+
+    rule(module: sequence(:_module)) do |_module:, origin:|
+      Hashie::Mash.new(
+        module: _module,
+        location: Rip::Parser::Location.new(origin, 0, 0, 0)
+      )
+    end
+
+
     rule(import: simple(:location), module_name: simple(:module_name)) do |location:, module_name:, origin:|
       Hashie::Mash.new(
         module_name: module_name,
@@ -55,24 +72,47 @@ module Rip::Parser::Utilities
     end
 
 
-    rule(escape_unicode: simple(:sequence), escape_location: simple(:location)) do |sequence:, location:, origin:|
+    rule(escape_unicode: simple(:sequence), escape_location: simple(:escape_location)) do |sequence:, escape_location:, origin:|
       Hashie::Mash.new(
         escape_unicode: sequence.to_s,
-        location: Rip::Parser::Location.from_slice(origin, location, location.length + sequence.length)
+        location: Rip::Parser::Location.from_slice(origin, escape_location, escape_location.length + sequence.length)
       )
     end
 
-    rule(escape_special: simple(:sequence), escape_location: simple(:location)) do |sequence:, location:, origin:|
+    rule(escape_unicode: simple(:sequence), escape_location: simple(:escape_location), location: simple(:location)) do |sequence:, location:, escape_location:, origin:|
+      Hashie::Mash.new(
+        escape_unicode: sequence.to_s,
+        location: Rip::Parser::Location.from_slice(origin, location, [ location, escape_location, sequence ].map(&:length).inject(&:+))
+      )
+    end
+
+
+    rule(escape_special: simple(:sequence), escape_location: simple(:escape_location)) do |sequence:, escape_location:, origin:|
       Hashie::Mash.new(
         escape_special: sequence.to_s,
-        location: Rip::Parser::Location.from_slice(origin, location, location.length + sequence.length)
+        location: Rip::Parser::Location.from_slice(origin, escape_location, escape_location.length + sequence.length)
       )
     end
 
-    rule(escape_any: simple(:sequence), escape_location: simple(:location)) do |sequence:, location:, origin:|
+    rule(escape_special: simple(:sequence), escape_location: simple(:escape_location), location: simple(:location)) do |sequence:, location:, escape_location:, origin:|
+      Hashie::Mash.new(
+        escape_special: sequence.to_s,
+        location: Rip::Parser::Location.from_slice(origin, location, [ location, escape_location, sequence ].map(&:length).inject(&:+))
+      )
+    end
+
+
+    rule(escape_any: simple(:sequence), escape_location: simple(:escape_location)) do |sequence:, escape_location:, origin:|
       Hashie::Mash.new(
         escape_any: sequence.to_s,
-        location: Rip::Parser::Location.from_slice(origin, location, location.length + sequence.length)
+        location: Rip::Parser::Location.from_slice(origin, escape_location, escape_location.length + sequence.length)
+      )
+    end
+
+    rule(escape_any: simple(:sequence), escape_location: simple(:escape_location), location: simple(:location)) do |sequence:, location:, escape_location:, origin:|
+      Hashie::Mash.new(
+        escape_any: sequence.to_s,
+        location: Rip::Parser::Location.from_slice(origin, location, [ location, escape_location, sequence ].map(&:length).inject(&:+))
       )
     end
 
