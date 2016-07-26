@@ -11,8 +11,10 @@ module Rip::Parser
         raw_tree = new.module.parse(source_code)
         Rip::Parser::Utilities::Normalizer.apply(origin, raw_tree)
       rescue Parslet::ParseFailed => e
-        location = Rip::Parser::Location.from_slice(origin, e.cause)
-        raise Rip::Exceptions::SyntaxError.new(e.message, location, [], e.cause.ascii_tree)
+        match = /\A.+ at line (\d+) char (\d+)\.\z/.match(e.message)
+        line, column = match ? match.values_at(1, 2).map(&:to_i) : [ 0, 0 ]
+        location = Rip::Parser::Location.new(origin, e.cause.pos.charpos, line, column)
+        raise Rip::Parser::SyntaxError.new(e.message, location, e.cause)
       end
     end
   end

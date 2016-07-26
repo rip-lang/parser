@@ -19,6 +19,7 @@ module Rip
 end
 
 require_relative './parser/about'
+require_relative './parser/error'
 require_relative './parser/grammar'
 require_relative './parser/keywords'
 require_relative './parser/location'
