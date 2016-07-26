@@ -68,8 +68,5 @@ module Rip::Parser::Rules
 
         reference
     end
-
-    rule(:expression_terminator) { semicolon | line_break }
-    rule(:expression_terminator?) { expression_terminator.maybe }
   end
 end

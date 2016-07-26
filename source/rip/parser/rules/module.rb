@@ -10,8 +10,12 @@ module Rip::Parser::Rules
     include Rip::Parser::Rules::Common
     include Rip::Parser::Rules::Expression
 
-    rule(:module) { line.repeat(1).as(:module) }
+    rule(:module) { lines.as(:module) }
 
-    rule(:line) { whitespaces? >> expression >> whitespaces? >> expression_terminator? }
+    rule(:lines) do
+      whitespaces? >> expression >> spaces? >> (
+        (semicolon | line_break) >> whitespaces? >> lines
+      ).repeat >> whitespaces?
+    end
   end
 end
