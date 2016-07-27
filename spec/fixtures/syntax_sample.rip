@@ -31,4 +31,6 @@ please-dont-ever-do-this = (((((foo).bar()).baz)))
 
 :answer: 42
 
+:range: 0..9.map
+
 foo()

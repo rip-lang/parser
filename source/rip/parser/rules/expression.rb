@@ -9,6 +9,7 @@ require_relative './list'
 require_relative './number'
 require_relative './pair'
 require_relative './property'
+require_relative './range'
 require_relative './reference'
 require_relative './string'
 
@@ -34,6 +35,8 @@ module Rip::Parser::Rules
     include Rip::Parser::Rules::Pair
 
     include Rip::Parser::Rules::Property
+
+    include Rip::Parser::Rules::Range
 
     include Rip::Parser::Rules::Reference
 
@@ -86,6 +89,7 @@ module Rip::Parser::Rules
       (
         property |
           pair_value |
+          range_end |
           invocation
       ).repeat
     end
