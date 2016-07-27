@@ -1,0 +1,32 @@
+# start with a comment
+
+import "something"
+import(:other)
+
+answers = [ 42, +42, -42 ]; deserts = [ 3.14, +3.14, -3.14 ]
+
+CAT = System.String.upper_case(:cat)
+
+# heredoc
+<<FOO
+
+multi-line
+
+\ttry one today!
+
+FOO
+
+
+/reg-ex/
+
+
+[
+	`v,
+	`\n,
+	`\u0123
+]
+
+
+please-dont-ever-do-this = (((((foo).bar()).baz)))
+
+foo()
