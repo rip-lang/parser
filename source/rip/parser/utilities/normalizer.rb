@@ -20,6 +20,7 @@ module Rip::Parser::Utilities
       chain.inject do |memo, link|
         case
           when link.key?(:property_name) then link.merge(object: memo)
+          when link.key?(:value)         then link.merge(key: memo)
           when link.key?(:arguments)     then link.merge(callable: memo)
           else
             warn link
@@ -40,6 +41,13 @@ module Rip::Parser::Utilities
       Hashie::Mash.new(
         property_name: property_name.to_s,
         location: Rip::Parser::Location.from_slice(origin, location, location.length + property_name.offset - location.offset)
+      )
+    end
+
+    rule(location: simple(:location), value: simple(:value)) do |location:, value:, origin:|
+      Hashie::Mash.new(
+        value: value,
+        location: Rip::Parser::Location.from_slice(origin, location, location.length + value.location.length)
       )
     end
 

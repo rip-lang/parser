@@ -15,7 +15,7 @@ RSpec.describe Rip::Parser do
     context 'top-level' do
       let(:expressions) { parse_tree.module }
 
-      specify { expect(expressions.count).to eq(10) }
+      specify { expect(expressions.count).to eq(11) }
 
       specify { expect(expressions.select(&:module_name).count).to eq(2) }
 
@@ -26,6 +26,8 @@ RSpec.describe Rip::Parser do
       specify { expect(expressions.select(&:string).count).to eq(1) }
 
       specify { expect(expressions.select(&:regular_expression).count).to eq(1) }
+
+      specify { expect(expressions.select(&:value).count).to eq(1) }
 
       specify { expect(expressions.select(&:callable).count).to eq(1) }
     end

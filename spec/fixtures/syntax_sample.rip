@@ -29,4 +29,6 @@ FOO
 
 please-dont-ever-do-this = (((((foo).bar()).baz)))
 
+:answer: 42
+
 foo()

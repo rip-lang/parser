@@ -7,6 +7,7 @@ require_relative './invocation'
 require_relative './keyword'
 require_relative './list'
 require_relative './number'
+require_relative './pair'
 require_relative './property'
 require_relative './reference'
 require_relative './string'
@@ -29,6 +30,8 @@ module Rip::Parser::Rules
     include Rip::Parser::Rules::Import
 
     include Rip::Parser::Rules::Invocation
+
+    include Rip::Parser::Rules::Pair
 
     include Rip::Parser::Rules::Property
 
@@ -82,6 +85,7 @@ module Rip::Parser::Rules
     rule(:expression_links) do
       (
         property |
+          pair_value |
           invocation
       ).repeat
     end
