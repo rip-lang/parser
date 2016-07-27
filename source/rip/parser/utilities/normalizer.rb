@@ -20,6 +20,7 @@ module Rip::Parser::Utilities
       chain.inject do |memo, link|
         case
           when link.key?(:property_name) then link.merge(object: memo)
+          when link.key?(:arguments)     then link.merge(callable: memo)
           else
             warn link
             raise Rip::Parser::NormalizeError.new('Unhandled expression link node', origin, link)
@@ -31,6 +32,13 @@ module Rip::Parser::Utilities
       Hashie::Mash.new(
         property_name: property_name.to_s,
         location: Rip::Parser::Location.from_slice(origin, location, location.length + property_name.offset - location.offset)
+      )
+    end
+
+    rule(location: simple(:location), arguments: sequence(:arguments)) do |location:, arguments:, origin:|
+      Hashie::Mash.new(
+        arguments: arguments,
+        location: Rip::Parser::Location.from_slice(origin, location, location.length + arguments.map(&:location).map(&:length).inject(0, &:+))
       )
     end
 

@@ -3,6 +3,7 @@ require 'parslet'
 require_relative './character'
 require_relative './common'
 require_relative './import'
+require_relative './invocation'
 require_relative './keyword'
 require_relative './list'
 require_relative './number'
@@ -26,6 +27,8 @@ module Rip::Parser::Rules
     include Rip::Parser::Rules::Keyword
 
     include Rip::Parser::Rules::Import
+
+    include Rip::Parser::Rules::Invocation
 
     include Rip::Parser::Rules::Property
 
@@ -76,6 +79,11 @@ module Rip::Parser::Rules
         reference
     end
 
-    rule(:expression_links) { property.repeat }
+    rule(:expression_links) do
+      (
+        property |
+          invocation
+      ).repeat
+    end
   end
 end
