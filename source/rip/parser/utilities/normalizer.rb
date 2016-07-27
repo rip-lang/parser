@@ -12,14 +12,35 @@ module Rip::Parser::Utilities
     end
 
 
-    rule(subtree(:tree)) do |tree:, origin:|
-      if tree.is_a?(Hash)
-        raise Rip::Parser::NormalizeError.new('Unhandled raw syntax tree node', origin, tree)
-      else
-        tree
+    rule(expression_chain: simple(:chain)) do |chain:, origin:|
+      chain
+    end
+
+    rule(expression_chain: sequence(:chain)) do |chain:, origin:|
+      chain.inject do |memo, link|
+        case
+          when link.key?(:property_name) then link.merge(object: memo)
+          else
+            warn link
+            raise Rip::Parser::NormalizeError.new('Unhandled expression link node', origin, link)
+        end
       end
     end
 
+    rule(location: simple(:location), property_name: simple(:property_name)) do |location:, property_name:, origin:|
+      Hashie::Mash.new(
+        property_name: property_name.to_s,
+        location: Rip::Parser::Location.from_slice(origin, location, location.length + property_name.offset - location.offset)
+      )
+    end
+
+
+    rule(module: simple(:_module)) do |_module:, origin:|
+      Hashie::Mash.new(
+        module: [ _module ],
+        location: Rip::Parser::Location.new(origin, 0, 0, 0)
+      )
+    end
 
     rule(module: sequence(:_module)) do |_module:, origin:|
       Hashie::Mash.new(

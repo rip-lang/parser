@@ -6,6 +6,7 @@ require_relative './import'
 require_relative './keyword'
 require_relative './list'
 require_relative './number'
+require_relative './property'
 require_relative './reference'
 require_relative './string'
 
@@ -26,11 +27,17 @@ module Rip::Parser::Rules
 
     include Rip::Parser::Rules::Import
 
+    include Rip::Parser::Rules::Property
+
     include Rip::Parser::Rules::Reference
 
     rule(:expression) do
-      expression_base |
-        parenthesis_open >> whitespaces? >> expression >> whitespaces? >> parenthesis_close
+      (
+        (
+          expression_base |
+            (parenthesis_open >> whitespaces? >> expression >> whitespaces? >> parenthesis_close)
+        ) >> expression_links
+      ).as(:expression_chain)
     end
 
     rule(:expression_base) do
@@ -68,5 +75,7 @@ module Rip::Parser::Rules
 
         reference
     end
+
+    rule(:expression_links) { property.repeat }
   end
 end
