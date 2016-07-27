@@ -28,6 +28,14 @@ module Rip::Parser::Utilities
       end
     end
 
+    rule(lhs: simple(:lhs), location: simple(:location), rhs: simple(:rhs)) do |lhs:, location:, rhs:, origin:|
+      Hashie::Mash.new(
+        lhs: lhs,
+        rhs: rhs,
+        location: Rip::Parser::Location.from_slice(origin, location, location.length + rhs.location.offset - location.offset)
+      )
+    end
+
     rule(location: simple(:location), property_name: simple(:property_name)) do |location:, property_name:, origin:|
       Hashie::Mash.new(
         property_name: property_name.to_s,
