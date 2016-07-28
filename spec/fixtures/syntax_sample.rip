@@ -34,3 +34,4 @@ please-dont-ever-do-this = (((((foo).bar()).baz)))
 :range: 0..9.map
 
 foo()
+list[42]

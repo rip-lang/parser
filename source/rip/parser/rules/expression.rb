@@ -4,6 +4,7 @@ require_relative './character'
 require_relative './common'
 require_relative './import'
 require_relative './invocation'
+require_relative './invocation_index'
 require_relative './keyword'
 require_relative './list'
 require_relative './number'
@@ -31,6 +32,7 @@ module Rip::Parser::Rules
     include Rip::Parser::Rules::Import
 
     include Rip::Parser::Rules::Invocation
+    include Rip::Parser::Rules::InvocationIndex
 
     include Rip::Parser::Rules::Pair
 
@@ -90,7 +92,8 @@ module Rip::Parser::Rules
         property |
           pair_value |
           range_end |
-          invocation
+          invocation |
+          invocation_index
       ).repeat
     end
   end

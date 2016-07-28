@@ -19,10 +19,19 @@ module Rip::Parser::Utilities
     rule(expression_chain: sequence(:chain)) do |chain:, origin:|
       chain.inject do |memo, link|
         case
-          when link.key?(:property_name) then link.merge(object: memo)
-          when link.key?(:value)         then link.merge(key: memo)
-          when link.key?(:end)           then link.merge(start: memo)
-          when link.key?(:arguments)     then link.merge(callable: memo)
+          when link.key?(:property_name)   then link.merge(object: memo)
+          when link.key?(:value)           then link.merge(key: memo)
+          when link.key?(:end)             then link.merge(start: memo)
+          when link.key?(:arguments)       then link.merge(callable: memo)
+          when link.key?(:index_arguments)
+            Hashie::Mash.new(
+              callable: {
+                object: memo,
+                property_name: '[]'
+              },
+              arguments: link.index_arguments,
+              location: link.location
+            )
           else
             warn link
             raise Rip::Parser::NormalizeError.new('Unhandled expression link node', origin, link)
@@ -62,6 +71,13 @@ module Rip::Parser::Utilities
     rule(location: simple(:location), arguments: sequence(:arguments)) do |location:, arguments:, origin:|
       Hashie::Mash.new(
         arguments: arguments,
+        location: Rip::Parser::Location.from_slice(origin, location, location.length + arguments.map(&:location).map(&:length).inject(0, &:+))
+      )
+    end
+
+    rule(location: simple(:location), index_arguments: sequence(:arguments)) do |location:, arguments:, origin:|
+      Hashie::Mash.new(
+        index_arguments: arguments,
         location: Rip::Parser::Location.from_slice(origin, location, location.length + arguments.map(&:location).map(&:length).inject(0, &:+))
       )
     end
