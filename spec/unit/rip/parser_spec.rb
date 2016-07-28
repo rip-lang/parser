@@ -13,23 +13,31 @@ RSpec.describe Rip::Parser do
     it { should be_an_instance_of(Hashie::Mash) }
 
     context 'top-level' do
-      let(:expressions) { parse_tree.module }
+      let(:actual_counts) do
+        parse_tree.module.map(&:keys).map do |keys|
+          keys.map(&:to_sym).reject do |key|
+            key == :location
+          end.sort
+        end.sort.group_by do |keys|
+          keys
+        end.map do |keys, all_keys|
+          [ keys, all_keys.count ]
+        end.to_h
+      end
 
-      specify { expect(expressions.count).to eq(13) }
+      let(:expected_counts) do
+        {
+          [ :arguments, :callable ] => 2,
+          [ :key, :value ]          => 2,
+          [ :lhs, :rhs ]            => 4,
+          [ :list ]                 => 1,
+          [ :module_name ]          => 2,
+          [ :regular_expression ]   => 1,
+          [ :string ]               => 1
+        }
+      end
 
-      specify { expect(expressions.select(&:module_name).count).to eq(2) }
-
-      specify { expect(expressions.select(&:list).count).to eq(1) }
-
-      specify { expect(expressions.select(&:lhs).count).to eq(4) }
-
-      specify { expect(expressions.select(&:string).count).to eq(1) }
-
-      specify { expect(expressions.select(&:regular_expression).count).to eq(1) }
-
-      specify { expect(expressions.select(&:value).count).to eq(2) }
-
-      specify { expect(expressions.select(&:callable).count).to eq(2) }
+      specify { expect(expected_counts).to eq(actual_counts) }
     end
 
     context 'spot-checks' do
