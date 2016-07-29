@@ -45,7 +45,8 @@ RSpec.describe Rip::Parser::Rules::Expression do
       end
 
       it do
-        should parse('(((((foo).bar()).baz)))').as(expression_chain: {
+        should parse('(((((foo).bar()).baz)))').as(
+          expression_chain: {
             expression_chain: {
               expression_chain: {
                 expression_chain: [

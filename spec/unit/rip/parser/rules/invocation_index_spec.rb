@@ -30,9 +30,15 @@ RSpec.describe Rip::Parser::Rules::InvocationIndex do
       should parse('[1, 2, 3]').as(
         location: '[',
         index_arguments: [
-          { expression_chain: { integer: '1' } },
-          { expression_chain: { integer: '2' } },
-          { expression_chain: { integer: '3' } }
+          {
+            expression_chain: { integer: '1' }
+          },
+          {
+            expression_chain: { integer: '2' }
+          },
+          {
+            expression_chain: { integer: '3' }
+          }
         ]
       )
     end

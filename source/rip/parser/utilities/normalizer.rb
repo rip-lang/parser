@@ -12,21 +12,21 @@ module Rip::Parser::Utilities
     end
 
 
-    rule(expression_chain: simple(:chain)) do |chain:, origin:|
-      chain
+    rule(expression_chain: simple(:part)) do |part:, origin:|
+      part
     end
 
-    rule(expression_chain: sequence(:chain)) do |chain:, origin:|
-      chain.inject do |memo, link|
+    rule(expression_chain: sequence(:parts)) do |parts:, origin:|
+      parts.inject do |base, link|
         case
-          when link.key?(:property_name)   then link.merge(object: memo)
-          when link.key?(:value)           then link.merge(key: memo)
-          when link.key?(:end)             then link.merge(start: memo)
-          when link.key?(:arguments)       then link.merge(callable: memo)
+          when link.key?(:property_name)   then link.merge(object: base)
+          when link.key?(:value)           then link.merge(key: base)
+          when link.key?(:end)             then link.merge(start: base)
+          when link.key?(:arguments)       then link.merge(callable: base)
           when link.key?(:index_arguments)
             Hashie::Mash.new(
               callable: {
-                object: memo,
+                object: base,
                 property_name: '[]'
               },
               arguments: link.index_arguments,

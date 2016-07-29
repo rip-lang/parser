@@ -42,12 +42,14 @@ module Rip::Parser::Rules
 
     include Rip::Parser::Rules::Reference
 
-    rule(:expression) do
+    rule(:expression) { expression_chain }
+
+    rule(:expression_chain) do
       (
         (
           expression_base |
-            (parenthesis_open >> whitespaces? >> expression >> whitespaces? >> parenthesis_close)
-        ) >> expression_links
+            (parenthesis_open >> whitespaces? >> expression_chain >> whitespaces? >> parenthesis_close)
+        ) >> expression_link.repeat
       ).as(:expression_chain)
     end
 
@@ -87,14 +89,12 @@ module Rip::Parser::Rules
         reference
     end
 
-    rule(:expression_links) do
-      (
-        property |
-          pair_value |
-          range_end |
-          invocation |
-          invocation_index
-      ).repeat
+    rule(:expression_link) do
+      property |
+        pair_value |
+        range_end |
+        invocation |
+        invocation_index
     end
   end
 end
