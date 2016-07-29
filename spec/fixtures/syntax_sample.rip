@@ -35,3 +35,6 @@ please-dont-ever-do-this = (((((foo).bar()).baz)))
 
 foo()
 list[42]
+a.b.c
+
+1.a.+(2.b).-(3.c).*(4.d)
