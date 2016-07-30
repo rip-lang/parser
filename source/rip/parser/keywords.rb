@@ -34,7 +34,7 @@ module Rip::Parser
 
     def self.object
       [
-        Keyword.new(:type),
+        Keyword.new(:class),
         Keyword.new(:dash_rocket, '->'),
         Keyword.new(:fat_rocket, '=>')
       ]
