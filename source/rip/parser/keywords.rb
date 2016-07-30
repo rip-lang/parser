@@ -1,45 +1,40 @@
 module Rip::Parser
   class Keyword
     attr_reader :name
-    attr_reader :keyword
+    attr_reader :source_text
 
-    def initialize(name, keyword = name)
+    def initialize(name, source_text = name)
       @name = name.to_sym
-      @keyword = keyword.to_sym
+      @source_text = source_text.to_s
     end
 
     def ==(other)
-      keyword == other.keyword
+      name == other.name
     end
 
     def to_debug
       name
     end
+
+    def self.[](name)
+      Keywords.all.detect do |keyword|
+        keyword.name == name
+      end.tap do |keyword|
+        raise "Unknown keyword: `#{name}`" if keyword.nil?
+      end
+    end
   end
 
   module Keywords
-    def self.[](name)
-      all.detect { |keyword| keyword.name == name }
-    end
-
     def self.all
       [
-        object,
         conditional,
         dependency,
         exceptional,
-        reserved,
+        object,
+        query,
         transfer
       ].inject(&:+)
-    end
-
-    def self.object
-      [
-        Keyword.new(:class),
-        Keyword.new(:swerve_rocket, '~>'),
-        Keyword.new(:dash_rocket, '->'),
-        Keyword.new(:fat_rocket, '=>')
-      ]
     end
 
     def self.conditional
@@ -54,8 +49,17 @@ module Rip::Parser
       make_keywords(:try, :catch, :finally)
     end
 
-    def self.reserved
-      make_keywords(:enum, :interface, :from, :as, :join, :union, :on, :where, :order, :select, :limit, :take)
+    def self.object
+      [
+        *make_keywords(:class, :enum, :interface),
+        Keyword.new(:swerve_rocket, '~>'),
+        Keyword.new(:dash_rocket, '->'),
+        Keyword.new(:fat_rocket, '=>')
+      ]
+    end
+
+    def self.query
+      make_keywords(:from, :as, :join, :union, :on, :where, :order, :select, :limit, :take)
     end
 
     def self.transfer
@@ -64,8 +68,8 @@ module Rip::Parser
 
     protected
 
-    def self.make_keywords(*keywords)
-      keywords.map { |keyword| Keyword.new(keyword) }
+    def self.make_keywords(*names)
+      names.map { |name| Keyword.new(name) }
     end
   end
 end

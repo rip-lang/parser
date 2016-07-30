@@ -8,10 +8,10 @@ RSpec.describe Rip::Parser::Rules::Keyword do
   let(:parser) { KeywordParser.new }
 
   describe '#keyword' do
-    subject { parser.keyword(:foo) }
+    subject { parser.keyword(:import) }
 
-    it { should parse('foo').as(foo: 'foo') }
+    it { should parse('import').as(import: 'import') }
 
-    it { should_not parse('fool') }
+    it { should_not parse('importer') }
   end
 end
