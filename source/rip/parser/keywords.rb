@@ -26,6 +26,7 @@ module Rip::Parser
       [
         object,
         conditional,
+        dependency,
         exceptional,
         reserved,
         transfer
@@ -35,6 +36,7 @@ module Rip::Parser
     def self.object
       [
         Keyword.new(:class),
+        Keyword.new(:swerve_rocket, '~>'),
         Keyword.new(:dash_rocket, '->'),
         Keyword.new(:fat_rocket, '=>')
       ]
@@ -44,12 +46,16 @@ module Rip::Parser
       make_keywords(:if, :switch, :case, :else)
     end
 
+    def self.dependency
+      make_keywords(:import)
+    end
+
     def self.exceptional
       make_keywords(:try, :catch, :finally)
     end
 
     def self.reserved
-      make_keywords(:from, :as, :join, :union, :on, :where, :order, :select, :limit, :take)
+      make_keywords(:enum, :interface, :from, :as, :join, :union, :on, :where, :order, :select, :limit, :take)
     end
 
     def self.transfer
