@@ -28,6 +28,29 @@ RSpec.describe Rip::Parser::Rules::Expression do
       it { should parse('(import :bar)') }
     end
 
+    context 'map literals' do
+      it do
+        should parse('{ nested: {} }').as(
+          expression_chain: {
+            location: '{',
+            map: [
+              {
+                expression_chain: [
+                  { reference: 'nested' },
+                  {
+                    location: ':',
+                    value: {
+                      expression_chain: { location: '{', map: [] }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        )
+      end
+    end
+
     context 'chaining' do
       it do
         should parse('foo.bar').as(expression_chain: [

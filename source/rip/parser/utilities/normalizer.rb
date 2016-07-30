@@ -242,6 +242,17 @@ module Rip::Parser::Utilities
       )
     end
 
+    rule(map: sequence(:pairs), location: simple(:location)) do |pairs:, location:, origin:|
+      length = pairs.inject(location.length) do |memo, pair|
+        memo + pair.location.length
+      end
+
+      Hashie::Mash.new(
+        map: pairs,
+        location: Rip::Parser::Location.from_slice(origin, location, length)
+      )
+    end
+
 
     rule(reference: simple(:reference)) do |reference:, origin:|
       Hashie::Mash.new(

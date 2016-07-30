@@ -10,6 +10,12 @@ RSpec.describe Rip::Parser do
     let(:parse_tree) { Rip::Parser.load_file(fixtures + 'syntax_sample.rip') }
     subject { parse_tree }
 
+    def find_rhs(name)
+      parse_tree.module.select(&:lhs).detect do |assignment|
+        assignment.lhs.reference == name.to_s
+      end.rhs.to_hash(symbolize_keys: true)
+    end
+
     it { should be_an_instance_of(Hashie::Mash) }
 
     context 'top-level' do
@@ -29,7 +35,7 @@ RSpec.describe Rip::Parser do
         {
           [ :arguments, :callable ]   => 3,
           [ :key, :value ]            => 2,
-          [ :lhs, :rhs ]              => 4,
+          [ :lhs, :rhs ]              => 5,
           [ :list ]                   => 1,
           [ :module_name ]            => 2,
           [ :object, :property_name ] => 1,
@@ -60,6 +66,8 @@ RSpec.describe Rip::Parser do
 
       specify { expect(range.start.integer).to eq('0') }
       specify { expect(range.end.object.integer).to eq('9') }
+
+      specify { expect(find_rhs(:map)[:map].count).to eq(1) }
     end
 
     context 'pathelogical nesting' do

@@ -7,6 +7,7 @@ require_relative './invocation'
 require_relative './invocation_index'
 require_relative './keyword'
 require_relative './list'
+require_relative './map'
 require_relative './number'
 require_relative './pair'
 require_relative './property'
@@ -33,6 +34,8 @@ module Rip::Parser::Rules
 
     include Rip::Parser::Rules::Invocation
     include Rip::Parser::Rules::InvocationIndex
+
+    include Rip::Parser::Rules::Map
 
     include Rip::Parser::Rules::Pair
 
@@ -84,7 +87,7 @@ module Rip::Parser::Rules
 
         list |
 
-        # map |
+        map |
 
         reference
     end
