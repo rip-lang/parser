@@ -35,6 +35,17 @@ please-dont-ever-do-this = (((((foo).bar()).baz)))
 
 map = { :answer: 42 }
 
+=> { -> { 42 } }
+-> { :cat }
+
+lambda = => {
+	(x) -> { x }
+}
+
+overload = (n) -> {
+	lambda(n)
+}
+
 foo()
 list[42]
 a.b.c

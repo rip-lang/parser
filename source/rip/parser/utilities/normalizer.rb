@@ -260,5 +260,53 @@ module Rip::Parser::Utilities
         location: Rip::Parser::Location.from_slice(origin, reference)
       )
     end
+
+
+    rule(dash_rocket: simple(:location), body: simple(:expression)) do |location:, expression:, origin:|
+      Hashie::Mash.new(
+        parameters: [],
+        body: [ expression ],
+        location: Rip::Parser::Location.from_slice(origin, location)
+      )
+    end
+
+    rule(dash_rocket: simple(:location), parameters: sequence(:parameters), body: simple(:expression)) do |location:, parameters:, expression:, origin:|
+      Hashie::Mash.new(
+        parameters: parameters,
+        body: [ expression ],
+        location: Rip::Parser::Location.from_slice(origin, location)
+      )
+    end
+
+    rule(dash_rocket: simple(:location), body: sequence(:body)) do |location:, body:, origin:|
+      Hashie::Mash.new(
+        parameters: [],
+        body: body,
+        location: Rip::Parser::Location.from_slice(origin, location)
+      )
+    end
+
+    rule(dash_rocket: simple(:location), parameters: sequence(:parameters), body: sequence(:body)) do |location:, parameters:, body:, origin:|
+      Hashie::Mash.new(
+        parameters: parameters,
+        body: body,
+        location: Rip::Parser::Location.from_slice(origin, location)
+      )
+    end
+
+    rule(parameter: simple(:parameter)) do |parameter:, origin:|
+      Hashie::Mash.new(
+        parameter: parameter.to_s,
+        location: Rip::Parser::Location.from_slice(origin, parameter)
+      )
+    end
+
+
+    rule(fat_rocket: simple(:location), overloads: sequence(:overloads)) do |location:, overloads:, origin:|
+      Hashie::Mash.new(
+        overloads: overloads,
+        location: Rip::Parser::Location.from_slice(origin, location)
+      )
+    end
   end
 end

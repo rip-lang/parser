@@ -34,11 +34,13 @@ RSpec.describe Rip::Parser do
       let(:expected_counts) do
         {
           [ :arguments, :callable ]   => 3,
+          [ :body, :parameters ]      => 1,
           [ :key, :value ]            => 2,
-          [ :lhs, :rhs ]              => 5,
+          [ :lhs, :rhs ]              => 7,
           [ :list ]                   => 1,
           [ :module_name ]            => 2,
           [ :object, :property_name ] => 1,
+          [ :overloads ]              => 1,
           [ :regular_expression ]     => 1,
           [ :string ]                 => 1
         }

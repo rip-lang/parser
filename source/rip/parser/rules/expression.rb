@@ -6,6 +6,7 @@ require_relative './import'
 require_relative './invocation'
 require_relative './invocation_index'
 require_relative './keyword'
+require_relative './lambda'
 require_relative './list'
 require_relative './map'
 require_relative './number'
@@ -25,6 +26,8 @@ module Rip::Parser::Rules
 
     include Rip::Parser::Rules::Character
     include Rip::Parser::Rules::String
+
+    include Rip::Parser::Rules::Lambda
 
     include Rip::Parser::Rules::List
 
@@ -61,8 +64,8 @@ module Rip::Parser::Rules
 
         # class_block |
 
-        # lambda_block |
-        # overload_block |
+        lambda_block |
+        overload_block |
 
         # condition_block_sequence |
 

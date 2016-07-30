@@ -12,6 +12,10 @@ module Rip::Parser::Rules
     include Rip::Parser::Rules::Expression
     include Rip::Parser::Rules::Reference
 
-    rule(:assignment) { reference.as(:lhs) >> spaces? >> equals.as(:location) >> whitespaces >> expression.as(:rhs) }
+    rule(:assignment) do
+      reference.as(:lhs) >> spaces? >>
+        equals.as(:location) >> whitespaces >>
+        expression.as(:rhs)
+    end
   end
 end
