@@ -20,8 +20,8 @@ RSpec.describe Rip::Parser do
 
     context 'top-level' do
       let(:actual_counts) do
-        parse_tree.module.map(&:keys).map do |keys|
-          keys.map(&:to_sym).reject do |key|
+        parse_tree.module.map do |expression|
+          expression.keys.map(&:to_sym).reject do |key|
             key == :location
           end.sort
         end.sort.group_by do |keys|
@@ -46,7 +46,7 @@ RSpec.describe Rip::Parser do
         }
       end
 
-      specify { expect(expected_counts).to eq(actual_counts) }
+      specify { expect(actual_counts).to eq(expected_counts) }
     end
 
     context 'spot-checks' do

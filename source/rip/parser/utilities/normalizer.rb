@@ -83,16 +83,16 @@ module Rip::Parser::Utilities
     end
 
 
-    rule(module: simple(:_module)) do |_module:, origin:|
+    rule(module: simple(:expression)) do |expression:, origin:|
       Hashie::Mash.new(
-        module: [ _module ],
+        module: [ expression ],
         location: Rip::Parser::Location.new(origin, 0, 0, 0)
       )
     end
 
-    rule(module: sequence(:_module)) do |_module:, origin:|
+    rule(module: sequence(:expressions)) do |expressions:, origin:|
       Hashie::Mash.new(
-        module: _module,
+        module: expressions,
         location: Rip::Parser::Location.new(origin, 0, 0, 0)
       )
     end
