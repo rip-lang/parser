@@ -8,7 +8,30 @@ module Rip::Parser::Utilities
     end
 
     def self.apply(origin, raw_tree)
-      new.apply(raw_tree, origin: origin)
+      new.apply(raw_tree, origin: origin).tap do |tree|
+        validate(tree, origin)
+      end
+    end
+
+    def self.validate(tree, origin)
+      case tree
+      when Array
+        tree.each do |branch|
+          validate(branch, origin)
+        end
+      when Hash, Hashie::Mash
+        tree.each_value do |branch|
+          validate(branch, origin)
+        end
+
+        if tree.key?(:expression_chain)
+          shape = tree[:expression_chain].map do |key, value|
+            [ key, value.class ]
+          end.to_h
+          warn shape
+          raise Rip::Parser::NormalizeError.new('Unhandled expression_chain node', origin, tree)
+        end
+      end
     end
 
 
