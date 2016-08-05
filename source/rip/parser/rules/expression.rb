@@ -1,5 +1,6 @@
 require 'parslet'
 
+require_relative './class'
 require_relative './character'
 require_relative './common'
 require_relative './import'
@@ -21,6 +22,8 @@ module Rip::Parser::Rules
     include ::Parslet
 
     include Rip::Parser::Rules::Common
+
+    include Rip::Parser::Rules::Class
 
     include Rip::Parser::Rules::Number
 
@@ -62,7 +65,7 @@ module Rip::Parser::Rules
     rule(:expression_base) do
       import |
 
-        # class_block |
+        class_block |
 
         lambda_block |
         overload_block |

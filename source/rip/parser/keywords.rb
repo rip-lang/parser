@@ -32,6 +32,7 @@ module Rip::Parser
         dependency,
         exceptional,
         object,
+        pseudo,
         query,
         transfer
       ].inject(&:+)
@@ -55,6 +56,14 @@ module Rip::Parser
         Keyword.new(:swerve_rocket, '~>'),
         Keyword.new(:dash_rocket, '->'),
         Keyword.new(:fat_rocket, '=>')
+      ]
+    end
+
+    def self.pseudo
+      [
+        Keyword.new(:class_self, 'self'),
+        Keyword.new(:class_prototype, '@'),
+        Keyword.new(:lambda_receiver, '@')
       ]
     end
 

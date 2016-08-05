@@ -324,10 +324,71 @@ module Rip::Parser::Utilities
       )
     end
 
+    rule(parameter: simple(:parameter), type_argument: simple(:type_argument)) do |parameter:, type_argument:, origin:|
+      Hashie::Mash.new(
+        parameter: parameter.to_s,
+        type_argument: type_argument,
+        location: Rip::Parser::Location.from_slice(origin, parameter)
+      )
+    end
+
 
     rule(fat_rocket: simple(:location), overloads: sequence(:overloads)) do |location:, overloads:, origin:|
       Hashie::Mash.new(
         overloads: overloads,
+        location: Rip::Parser::Location.from_slice(origin, location)
+      )
+    end
+
+
+    rule(swerve_rocket: simple(:location), body: simple(:expression)) do |location:, expression:, origin:|
+      Hashie::Mash.new(
+        body: [ expression ],
+        location: Rip::Parser::Location.from_slice(origin, location)
+      )
+    end
+
+    rule(swerve_rocket: simple(:location), body: sequence(:expressions)) do |location:, expressions:, origin:|
+      Hashie::Mash.new(
+        body: expressions,
+        location: Rip::Parser::Location.from_slice(origin, location)
+      )
+    end
+
+    rule(property_name: simple(:name), location: simple(:location), property_value: simple(:value)) do |name:, location:, value:, origin:|
+      Hashie::Mash.new(
+        class_property: name.to_s,
+        value: value,
+        location: Rip::Parser::Location.from_slice(origin, location)
+      )
+    end
+
+    rule(class_self: simple(:self), property_name: simple(:name), location: simple(:location), property_value: simple(:value)) do |self:, name:, location:, value:, origin:|
+      Hashie::Mash.new(
+        class_property: name.to_s,
+        value: value,
+        location: Rip::Parser::Location.from_slice(origin, location)
+      )
+    end
+
+    rule(class_prototype: simple(:prototype), property_name: simple(:name), location: simple(:location), property_value: simple(:value)) do |prototype:, name:, location:, value:, origin:|
+      Hashie::Mash.new(
+        prototype_property: name.to_s,
+        value: value,
+        location: Rip::Parser::Location.from_slice(origin, location)
+      )
+    end
+
+    rule(class: simple(:location), body: simple(:class_property)) do |location:, class_property:, origin:|
+      Hashie::Mash.new(
+        properties: Array(class_property),
+        location: Rip::Parser::Location.from_slice(origin, location)
+      )
+    end
+
+    rule(class: simple(:location), body: sequence(:class_properties)) do |location:, class_properties:, origin:|
+      Hashie::Mash.new(
+        properties: class_properties,
         location: Rip::Parser::Location.from_slice(origin, location)
       )
     end

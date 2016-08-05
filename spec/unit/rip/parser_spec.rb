@@ -36,7 +36,7 @@ RSpec.describe Rip::Parser do
           [ :arguments, :callable ]   => 3,
           [ :body, :parameters ]      => 1,
           [ :key, :value ]            => 2,
-          [ :lhs, :rhs ]              => 7,
+          [ :lhs, :rhs ]              => 9,
           [ :list ]                   => 1,
           [ :module_name ]            => 2,
           [ :object, :property_name ] => 1,
@@ -70,8 +70,9 @@ RSpec.describe Rip::Parser do
           [ :body, :parameters ]      => 1,
           [ :list ]                   => 2,
           [ :map ]                    => 1,
+          [ :object, :property_name ] => 1,
           [ :overloads ]              => 1,
-          [ :object, :property_name ] => 1
+          [ :properties ]             => 2
         }
       end
 
