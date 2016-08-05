@@ -70,6 +70,8 @@ module Rip::Parser::Rules
         lambda_block |
         overload_block |
 
+        # enum_block |
+
         # condition_block_sequence |
 
         # switch_block |
