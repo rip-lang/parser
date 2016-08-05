@@ -18,7 +18,7 @@ RSpec.describe Rip::Parser do
 
     it { should be_an_instance_of(Hashie::Mash) }
 
-    context 'top-level' do
+    context 'top-level expressions' do
       let(:actual_counts) do
         parse_tree.module.map do |expression|
           expression.keys.map(&:to_sym).reject do |key|
@@ -43,6 +43,35 @@ RSpec.describe Rip::Parser do
           [ :overloads ]              => 1,
           [ :regular_expression ]     => 1,
           [ :string ]                 => 1
+        }
+      end
+
+      specify { expect(actual_counts).to eq(expected_counts) }
+    end
+
+    context 'top-level assignments' do
+      let(:actual_counts) do
+        parse_tree.module.select do |expression|
+          expression.keys.include?('lhs')
+        end.map do |expression|
+          expression.rhs.keys.map(&:to_sym).reject do |key|
+            key == :location
+          end.sort
+        end.sort.group_by do |keys|
+          keys
+        end.map do |keys, all_keys|
+          [ keys, all_keys.count ]
+        end.to_h
+      end
+
+      let(:expected_counts) do
+        {
+          [ :arguments, :callable ]   => 1,
+          [ :body, :parameters ]      => 1,
+          [ :list ]                   => 2,
+          [ :map ]                    => 1,
+          [ :overloads ]              => 1,
+          [ :object, :property_name ] => 1
         }
       end
 
