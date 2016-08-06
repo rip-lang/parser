@@ -9,19 +9,20 @@ module Rip::Parser::Utilities
 
     def self.apply(origin, raw_tree)
       new.apply(raw_tree, origin: origin).tap do |tree|
-        validate(tree, origin)
+        validate_branches(tree, origin)
+        validate_leaves(tree, origin)
       end
     end
 
-    def self.validate(tree, origin)
+    def self.validate_branches(tree, origin)
       case tree
       when Array
         tree.each do |branch|
-          validate(branch, origin)
+          validate_branches(branch, origin)
         end
       when Hash, Hashie::Mash
         tree.each_value do |branch|
-          validate(branch, origin)
+          validate_branches(branch, origin)
         end
 
         if tree.key?(:expression_chain)
@@ -31,6 +32,32 @@ module Rip::Parser::Utilities
           warn shape
           raise Rip::Parser::NormalizeError.new('Unhandled expression_chain node', origin, tree)
         end
+      end
+    end
+
+    def self.validate_leaves(tree, origin)
+      case tree
+      when Array
+        tree.each do |branch|
+          validate_leaves(branch, origin)
+        end
+      when Hashie::Mash
+        tree.each_value do |branch|
+          validate_leaves(branch, origin)
+        end
+
+        unless tree.key?(:location)
+          warn tree
+          raise Rip::Parser::NormalizeError.new('Node has no location', origin, tree)
+        end
+
+        unless tree.key?(:type)
+          warn tree
+          raise Rip::Parser::NormalizeError.new('Node has no type', origin, tree)
+        end
+      when Parslet::Slice
+        warn tree
+        raise Rip::Parser::NormalizeError.new('Unconverted parslet slice', origin, tree)
       end
     end
 
@@ -50,8 +77,10 @@ module Rip::Parser::Utilities
             Hashie::Mash.new(
               type: :invocation_infix,
               callable: {
+                type: :property_access,
                 object: base,
-                property_name: '[]'
+                property_name: '[]',
+                location: link.location
               },
               arguments: link.index_arguments,
               location: link.location
