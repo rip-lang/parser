@@ -261,9 +261,8 @@ module Rip::Parser::Utilities
 
     rule(string: sequence(:characters), location: simple(:location)) do |characters:, location:, origin:|
       closing_delimiter_length = case location
-        when /:/                       then 0
-        when /"/                       then 1
-        when /\A\<\<(?<label>[A-Z_]+)/ then Regexp.last_match(:label).length
+        when /:/ then 0
+        when /"/ then 1
       end
 
       length = characters.inject(location.length + closing_delimiter_length) do |memo, character|
@@ -272,6 +271,19 @@ module Rip::Parser::Utilities
 
       Hashie::Mash.new(
         type: :string,
+        characters: characters,
+        location: Rip::Parser::Location.from_slice(origin, location, length)
+      )
+    end
+
+    rule(string: sequence(:characters), label: simple(:label), location: simple(:location)) do |characters:, label:, location:, origin:|
+      length = characters.inject(location.length + (label.length * 2) + 1) do |memo, character|
+        memo + character.location.length
+      end
+
+      Hashie::Mash.new(
+        type: :string,
+        label: label.to_s,
         characters: characters,
         location: Rip::Parser::Location.from_slice(origin, location, length)
       )
