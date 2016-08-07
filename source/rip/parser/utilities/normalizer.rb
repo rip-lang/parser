@@ -288,6 +288,15 @@ module Rip::Parser::Utilities
     end
 
 
+    rule(interpolation: simple(:expression), location: simple(:location)) do |expression:, location:, origin:|
+      Hashie::Mash.new(
+        type: :interpolation,
+        expression: expression,
+        location: Rip::Parser::Location.from_slice(origin, location, location.length + expression.length)
+      )
+    end
+
+
     rule(string: sequence(:characters), location: simple(:location)) do |characters:, location:, origin:|
       closing_delimiter_length = case location
         when /:/ then 0

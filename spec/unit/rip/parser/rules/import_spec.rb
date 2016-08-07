@@ -2,7 +2,12 @@ require 'spec_helper'
 
 RSpec.describe Rip::Parser::Rules::Import do
   class ImportParser
+    include ::Parslet
+
     include Rip::Parser::Rules::Import
+    include Rip::Parser::Rules::Reference
+
+    rule(:expression) { reference }
   end
 
   let(:parser) { ImportParser.new }

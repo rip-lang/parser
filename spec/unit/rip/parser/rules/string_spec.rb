@@ -2,7 +2,12 @@ require 'spec_helper'
 
 RSpec.describe Rip::Parser::Rules::String do
   class StringParser
+    include ::Parslet
+
+    include Rip::Parser::Rules::Reference
     include Rip::Parser::Rules::String
+
+    rule(:expression) { reference }
   end
 
   let(:parser) { StringParser.new }
@@ -41,6 +46,8 @@ RSpec.describe Rip::Parser::Rules::String do
         { character: '7' }
       ])
     end
+
+    it { should_not parse(':foo#{bar}baz') }
   end
 
   describe '#string_double' do
@@ -61,6 +68,18 @@ RSpec.describe Rip::Parser::Rules::String do
         { character: 'b' }
       ])
     end
+
+    it do
+      should parse('"foo#{bar}baz"').as(location: '"', string: [
+        { character: 'f' },
+        { character: 'o' },
+        { character: 'o' },
+        { location: '#{', interpolation: { reference: 'bar' } },
+        { character: 'b' },
+        { character: 'a' },
+        { character: 'z' }
+      ])
+    end
   end
 
   describe '#regular_expression' do
@@ -71,6 +90,14 @@ RSpec.describe Rip::Parser::Rules::String do
         { character: 'r' },
         { escape_location: '\\', escape_any: '.' },
         { character: 'p' }
+      ])
+    end
+
+    it do
+      should parse('/f#{bar}b/').as(location: '/', regular_expression: [
+        { character: 'f' },
+        { location: '#{', interpolation: { reference: 'bar' } },
+        { character: 'b' }
       ])
     end
   end
@@ -95,6 +122,23 @@ RSpec.describe Rip::Parser::Rules::String do
           { character: 'n' }, { character: 'e' }, { character: "\n" }, { character: 's' },
           { character: 't' }, { character: 'r' }, { character: 'i' }, { character: 'n' },
           { character: 'g' }, { character: "\n" }
+        ])
+      end
+    end
+
+    context 'interpolation' do
+      let(:rip) do
+        strip_heredoc(<<-RIP)
+          <<BLOCK
+          \#{answer}
+          BLOCK
+        RIP
+      end
+
+      it do
+        should parse(rip).as(location: '<<', label: 'BLOCK', string: [
+          { location: '#{', interpolation: { reference: 'answer' } },
+          { character: "\n" }
         ])
       end
     end

@@ -70,6 +70,9 @@ System = class {
 	String = import "./string"
 }
 
+"a#{b.c}d"
+/a#{b.c}d/
+
 foo()
 list[42]
 a.b.c

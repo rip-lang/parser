@@ -38,8 +38,8 @@ RSpec.describe Rip::Parser do
           overload:           1,
           pair:               2,
           property_access:    1,
-          regular_expression: 1,
-          string:             1
+          regular_expression: 2,
+          string:             2
         }
       end
 
