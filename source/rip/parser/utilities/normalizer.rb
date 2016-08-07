@@ -246,6 +246,16 @@ module Rip::Parser::Utilities
     end
 
 
+    rule(magnitude: simple(:magnitude), label: simple(:label)) do |magnitude:, label:, origin:|
+      Hashie::Mash.new(
+        type: :unit,
+        magnitude: magnitude,
+        label: label.to_s,
+        location: magnitude.location.add_character(label.length)
+      )
+    end
+
+
     rule(integer: simple(:integer)) do |integer:, origin:|
       Hashie::Mash.new(
         type: :integer,

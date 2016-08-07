@@ -77,6 +77,9 @@ rip_initial_commit = 2012-02-12T00:24:00-0500
 
 lunch-time = 12:30:00.today()
 
+space = 100_000km
+mariana = -10_994km
+
 foo()
 list[42]
 a.b.c

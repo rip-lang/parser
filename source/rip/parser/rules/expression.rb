@@ -17,6 +17,7 @@ require_relative './property'
 require_relative './range'
 require_relative './reference'
 require_relative './string'
+require_relative './unit'
 
 module Rip::Parser::Rules
   module Expression
@@ -54,6 +55,8 @@ module Rip::Parser::Rules
 
     include Rip::Parser::Rules::Reference
 
+    include Rip::Parser::Rules::Unit
+
     rule(:expression) { expression_chain }
 
     rule(:expression_chain) do
@@ -85,7 +88,7 @@ module Rip::Parser::Rules
         date |
         time |
 
-        # unit | # maybe
+        unit |
 
         # version | # maybe
 

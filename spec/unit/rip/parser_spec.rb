@@ -29,7 +29,7 @@ RSpec.describe Rip::Parser do
 
       let(:expected_counts) do
         {
-          assignment:         11,
+          assignment:         13,
           import:              2,
           invocation:          2,
           invocation_infix:    1,
@@ -64,7 +64,8 @@ RSpec.describe Rip::Parser do
           list:            2,
           map:             1,
           overload:        1,
-          property_access: 1
+          property_access: 1,
+          unit:            2
         }
       end
 
