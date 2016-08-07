@@ -27,5 +27,68 @@ RSpec.describe Rip::Parser::Rules::Expression do
       it { should parse('(( ((`z))) )') }
       it { should parse('(import :bar)') }
     end
+
+    context 'map literals' do
+      it do
+        should parse('{ nested: {} }').as(
+          expression_chain: {
+            location: '{',
+            map: [
+              {
+                expression_chain: [
+                  { reference: 'nested' },
+                  {
+                    location: ':',
+                    value: {
+                      expression_chain: { location: '{', map: [] }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        )
+      end
+    end
+
+    context 'chaining' do
+      it do
+        should parse('foo.bar').as(expression_chain: [
+          { reference: 'foo' },
+          { location: '.', property_name: 'bar' }
+        ])
+      end
+
+      it do
+        should parse('a.b.c').as(expression_chain: [
+          { reference: 'a' },
+          { location: '.', property_name: 'b' },
+          { location: '.', property_name: 'c' }
+        ])
+      end
+
+      it do
+        should parse('(((((foo).bar()).baz)))').as(
+          expression_chain: {
+            expression_chain: {
+              expression_chain: {
+                expression_chain: [
+                  {
+                    expression_chain: [
+                      {
+                        expression_chain: { reference: 'foo' }
+                      },
+                      { location: '.', property_name: 'bar' },
+                      { location: '(', arguments: [] }
+                    ]
+                  },
+                  { location: '.', property_name: 'baz' }
+                ]
+              }
+            }
+          }
+        )
+      end
+    end
   end
 end

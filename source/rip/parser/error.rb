@@ -23,13 +23,13 @@ module Rip::Parser
 
   class NormalizeError < Error
     attr_reader :origin
-    attr_reader :raw_tree
+    attr_reader :tree
 
-    def initialize(message, origin, raw_tree)
+    def initialize(message, origin, tree = nil)
       super(message)
 
       @origin = origin
-      @raw_tree = raw_tree
+      @tree = tree
       @code = 12
     end
   end

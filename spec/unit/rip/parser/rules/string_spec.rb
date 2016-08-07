@@ -89,7 +89,7 @@ RSpec.describe Rip::Parser::Rules::String do
       end
 
       it do
-        should parse(rip).as(location: "<<BLOCK\n", string: [
+        should parse(rip).as(location: '<<', label: 'BLOCK', string: [
           { character: 'm' }, { character: 'u' }, { character: 'l' }, { character: 't' },
           { character: 'i' }, { character: '-' }, { character: 'l' }, { character: 'i' },
           { character: 'n' }, { character: 'e' }, { character: "\n" }, { character: 's' },
@@ -111,7 +111,7 @@ RSpec.describe Rip::Parser::Rules::String do
       end
 
       it do
-        should parse(rip).as(location: "<<BLOCK\n", string: [
+        should parse(rip).as(location: '<<', label: 'BLOCK', string: [
           { character: "\n" },
           { escape_location: '\\', escape_special: 't' }, { character: 'f' }, { character: 'o' }, { character: 'o' }, { character: "\n" },
           { character: "\n" }

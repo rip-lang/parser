@@ -1,0 +1,77 @@
+# start with a comment
+
+import "something"
+import(:other)
+
+answers = [ 42, +42, -42 ]; deserts = [ 3.14, +3.14, -3.14 ]
+
+CAT = System.String.upper_case(:cat)
+
+# heredoc
+<<FOO
+
+multi-line
+
+\ttry one today!
+
+FOO
+
+
+/reg-ex/
+
+
+[
+	`v,
+	`\n,
+	`\u0123
+]
+
+
+please-dont-ever-do-this = (((((foo).bar()).baz)))
+
+:answer: 42
+
+:range: 0..9.map
+
+map = { :answer: 42 }
+
+=> { -> { 42 } }
+-> { :cat }
+
+lambda = => {
+	(x) -> { x }
+}
+
+overload = (n) -> {
+	lambda(n)
+}
+
+Person = class {
+	aaa = 3.14
+
+	self.bbb = ~> {
+		@.aaa
+	}
+
+	@.ccc = -> {
+		@.name
+	}
+
+	@.initialize = => {
+		(name<String>) -> {
+			name = name
+		}
+	}
+
+	Nested = class { }
+}
+
+System = class {
+	String = import "./string"
+}
+
+foo()
+list[42]
+a.b.c
+
+1.a.+(2.b).-(3.c).*(4.d)

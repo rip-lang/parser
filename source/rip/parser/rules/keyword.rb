@@ -5,7 +5,8 @@ module Rip::Parser::Rules
     include ::Parslet
 
     def keyword(word)
-      str(word.to_s).as(word.to_sym)
+      keyword = Rip::Parser::Keyword[word]
+      str(keyword.source_text).as(keyword.name)
     end
   end
 end

@@ -20,9 +20,9 @@ module Rip::Parser::Rules
     rule(:quote_single) { str('\'') }
     rule(:quote_double) { str('"') }
 
-    rule(:heredoc) { heredoc_start.as(:location) >> heredoc_content.as(:string) >> heredoc_end }
+    rule(:heredoc) { heredoc_start >> heredoc_content.as(:string) >> heredoc_end }
 
-    rule(:heredoc_start) { angled_open.repeat(2, 2) >> match['A-Z_'].repeat(1).capture(:heredoc_label) >> line_break }
+    rule(:heredoc_start) { angled_open.repeat(2, 2).as(:location) >> match['A-Z_'].repeat(1).capture(:heredoc_label).as(:label) >> line_break }
 
     rule(:heredoc_content) { (heredoc_end.absent? >> (escape_sequence | any.as(:character))).repeat }
 
