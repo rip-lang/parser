@@ -3,6 +3,7 @@ require 'parslet'
 require_relative './class'
 require_relative './character'
 require_relative './common'
+require_relative './date_time'
 require_relative './import'
 require_relative './invocation'
 require_relative './invocation_index'
@@ -24,6 +25,8 @@ module Rip::Parser::Rules
     include Rip::Parser::Rules::Common
 
     include Rip::Parser::Rules::Class
+
+    include Rip::Parser::Rules::DateTime
 
     include Rip::Parser::Rules::Number
 
@@ -78,9 +81,9 @@ module Rip::Parser::Rules
 
         # exception_block_sequence |
 
-        # date_time |
-        # date |
-        # time |
+        date_time |
+        date |
+        time |
 
         # unit | # maybe
 

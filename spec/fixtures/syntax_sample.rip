@@ -73,6 +73,10 @@ System = class {
 "a#{b.c}d"
 /a#{b.c}d/
 
+rip_initial_commit = 2012-02-12T00:24:00-0500
+
+lunch-time = 12:30:00.today()
+
 foo()
 list[42]
 a.b.c

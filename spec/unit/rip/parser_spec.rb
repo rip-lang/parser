@@ -29,17 +29,17 @@ RSpec.describe Rip::Parser do
 
       let(:expected_counts) do
         {
-          assignment:         9,
-          import:             2,
-          invocation:         2,
-          invocation_infix:   1,
-          lambda:             1,
-          list:               1,
-          overload:           1,
-          pair:               2,
-          property_access:    1,
-          regular_expression: 2,
-          string:             2
+          assignment:         11,
+          import:              2,
+          invocation:          2,
+          invocation_infix:    1,
+          lambda:              1,
+          list:                1,
+          overload:            1,
+          pair:                2,
+          property_access:     1,
+          regular_expression:  2,
+          string:              2
         }
       end
 
@@ -58,7 +58,8 @@ RSpec.describe Rip::Parser do
       let(:expected_counts) do
         {
           class:           2,
-          invocation:      1,
+          date_time:       1,
+          invocation:      2,
           lambda:          1,
           list:            2,
           map:             1,
@@ -79,6 +80,8 @@ RSpec.describe Rip::Parser do
         end.value
       end
 
+      let(:lunch_time) { find_rhs('lunch-time') }
+
       specify { expect(list.items.count).to eq(3) }
 
       specify { expect(list.items.select { |i| i.type == :character }.count).to eq(1) }
@@ -91,6 +94,12 @@ RSpec.describe Rip::Parser do
       specify { expect(range.end.object.integer).to eq('9') }
 
       specify { expect(find_rhs(:map).pairs.count).to eq(1) }
+
+      specify do
+        expect(lunch_time.type).to eq(:invocation)
+        expect(lunch_time.callable.type).to eq(:property_access)
+        expect(lunch_time.callable.object.type).to eq(:time)
+      end
     end
 
     context 'pathelogical nesting' do

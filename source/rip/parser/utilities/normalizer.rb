@@ -168,6 +168,84 @@ module Rip::Parser::Utilities
     end
 
 
+    rule(date: simple(:date), time: simple(:time)) do |date:, time:, origin:|
+      Hashie::Mash.new(
+        type: :date_time,
+        date: date,
+        time: time,
+        location: date.location.add_character(1 + time.length)
+      )
+    end
+
+    rule(year: simple(:year), month: simple(:month), day: simple(:day)) do |year:, month:, day:, origin:|
+      Hashie::Mash.new(
+        type: :date,
+        year: year.to_s,
+        month: month.to_s,
+        day: day.to_s,
+        location: Rip::Parser::Location.from_slice(origin, year + '-' + month + '-' + day)
+      )
+    end
+
+    rule(hour: simple(:hour), minute: simple(:minute), second: simple(:second)) do |hour:, minute:, second:, origin:|
+      Hashie::Mash.new(
+        type: :time,
+        hour: hour.to_s,
+        minute: minute.to_s,
+        second: second.to_s,
+        location: Rip::Parser::Location.from_slice(origin, hour + '-' + minute + '-' + second)
+      )
+    end
+
+    rule(hour: simple(:hour), minute: simple(:minute), second: simple(:second), sub_second: simple(:sub_second)) do |hour:, minute:, second:, sub_second:, origin:|
+      Hashie::Mash.new(
+        type: :time,
+        hour: hour.to_s,
+        minute: minute.to_s,
+        second: second.to_s,
+        sub_second: sub_second.to_s,
+        location: Rip::Parser::Location.from_slice(origin, hour + '-' + minute + '-' + second + '.' + sub_second)
+      )
+    end
+
+    rule(hour: simple(:hour), minute: simple(:minute), second: simple(:second), offset: simple(:offset)) do |hour:, minute:, second:, offset:, origin:|
+      slice = hour + '-' + minute + '-' + second
+
+      Hashie::Mash.new(
+        type: :time,
+        hour: hour.to_s,
+        minute: minute.to_s,
+        second: second.to_s,
+        offset: offset,
+        location: Rip::Parser::Location.from_slice(origin, slice, slice.length + offset.length)
+      )
+    end
+
+    rule(hour: simple(:hour), minute: simple(:minute), second: simple(:second), sub_second: simple(:sub_second), offset: simple(:offset)) do |hour:, minute:, second:, sub_second:, offset:, origin:|
+      slice = hour + '-' + minute + '-' + second + '.' + sub_second
+
+      Hashie::Mash.new(
+        type: :time,
+        hour: hour.to_s,
+        minute: minute.to_s,
+        second: second.to_s,
+        sub_second: sub_second.to_s,
+        offset: offset,
+        location: Rip::Parser::Location.from_slice(origin, slice, slice.length + offset.length)
+      )
+    end
+
+    rule(sign: simple(:sign), hour: simple(:hour), minute: simple(:minute)) do |sign:, hour:, minute:, origin:|
+      Hashie::Mash.new(
+        type: :time_offset,
+        sign: sign.to_sym,
+        hour: hour.to_s,
+        minute: minute.to_s,
+        location: Rip::Parser::Location.from_slice(origin, sign + hour + minute)
+      )
+    end
+
+
     rule(integer: simple(:integer)) do |integer:, origin:|
       Hashie::Mash.new(
         type: :integer,
