@@ -20,9 +20,20 @@ RSpec.describe Rip::Parser do
 
     it { should be_an_instance_of(Hashie::Mash) }
 
-    context 'top-level expressions' do
+    context 'top-level' do
+      let(:expressions) { parse_tree.expressions }
+
+      let(:assignment_values) do
+        parse_tree.expressions.select do |expression|
+          expression.type == :assignment
+        end.map(&:rhs)
+      end
+
       let(:actual_counts) do
-        parse_tree.expressions.sort_by(&:type).group_by(&:type).map do |type, expression|
+        [
+          *expressions,
+          *assignment_values
+        ].sort_by(&:type).group_by(&:type).map do |type, expression|
           [ type, expression.count ]
         end.to_h
       end
@@ -30,47 +41,26 @@ RSpec.describe Rip::Parser do
       let(:expected_counts) do
         {
           assignment:         16,
+          class:               2,
+          date_time:           1,
           import:              2,
-          invocation:          2,
+          integer:             1,
+          invocation:          5,
           invocation_infix:    1,
-          lambda:              1,
-          list:                1,
-          overload:            1,
+          lambda:              2,
+          list:                3,
+          map:                 1,
+          overload:            3,
           pair:                1,
-          property_access:     1,
+          property_access:     2,
           regular_expression:  2,
-          string:              2
+          string:              2,
+          unit:                2
         }
       end
 
       specify { expect(actual_counts).to eq(expected_counts) }
-    end
-
-    context 'top-level assignments' do
-      let(:actual_counts) do
-        parse_tree.expressions.select do |expression|
-          expression.type == :assignment
-        end.map(&:rhs).sort_by(&:type).group_by(&:type).map do |type, expression|
-          [ type, expression.count ]
-        end.to_h
-      end
-
-      let(:expected_counts) do
-        {
-          class:           2,
-          date_time:       1,
-          integer:         1,
-          invocation:      3,
-          lambda:          1,
-          list:            2,
-          map:             1,
-          overload:        2,
-          property_access: 1,
-          unit:            2
-        }
-      end
-
-      specify { expect(actual_counts).to eq(expected_counts) }
+      specify { expect(actual_counts.keys).to eq(expected_counts.keys) }
     end
 
     context 'spot-checks' do
