@@ -389,9 +389,10 @@ module Rip::Parser::Utilities
       )
     end
 
+
     rule(parameter: simple(:parameter)) do |parameter:, origin:|
       Hashie::Mash.new(
-        type: :parameter,
+        type: :required_parameter,
         name: parameter.to_s,
         location: Rip::Parser::Location.from_slice(origin, parameter)
       )
@@ -399,7 +400,7 @@ module Rip::Parser::Utilities
 
     rule(parameter: simple(:parameter), type_argument: simple(:type_argument)) do |parameter:, type_argument:, origin:|
       Hashie::Mash.new(
-        type: :parameter,
+        type: :required_parameter,
         name: parameter.to_s,
         type_argument: type_argument,
         location: Rip::Parser::Location.from_slice(origin, parameter)
