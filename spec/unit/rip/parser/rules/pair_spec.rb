@@ -4,7 +4,7 @@ RSpec.describe Rip::Parser::Rules::Pair do
   class PairParser
     include ::Parslet
 
-    include Rip::Parser::Rules::Expression
+    include Rip::Parser::Rules::Module
     include Rip::Parser::Rules::Pair
   end
 

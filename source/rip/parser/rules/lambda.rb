@@ -36,9 +36,9 @@ module Rip::Parser::Rules
 
     rule(:parameter_type_argument) { angled_open >> spaces? >> reference.as(:type_argument) >> spaces? >> angled_close }
 
-    rule(:block_body) do
+    def block_body(label = :body)
       brace_open >> whitespaces? >>
-        lines.as(:body) >>
+        lines.as(label) >>
         whitespaces? >> brace_close
     end
   end

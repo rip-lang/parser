@@ -3,6 +3,7 @@ require 'spec_helper'
 RSpec.describe Rip::Parser::Rules::Assignment do
   class AssignmentParser
     include Rip::Parser::Rules::Assignment
+    include Rip::Parser::Rules::Module
   end
 
   let(:parser) { AssignmentParser.new }
