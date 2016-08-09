@@ -35,7 +35,7 @@ module Rip::Parser::Rules
     end
 
     rule(:property_assignment) do
-      class_property >> spaces? >> equals.as(:location) >> whitespaces >> property_value.as(:property_value)
+      class_property >> spaces >> equals.as(:location) >> whitespaces >> property_value.as(:property_value)
     end
 
     rule(:class_property) do

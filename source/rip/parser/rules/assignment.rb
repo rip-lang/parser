@@ -13,7 +13,7 @@ module Rip::Parser::Rules
     include Rip::Parser::Rules::Reference
 
     rule(:assignment) do
-      reference.as(:lhs) >> spaces? >>
+      reference.as(:lhs) >> spaces >>
         equals.as(:location) >> whitespaces >>
         expression.as(:rhs)
     end
