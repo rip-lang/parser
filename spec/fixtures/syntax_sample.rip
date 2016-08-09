@@ -29,7 +29,16 @@ FOO
 
 please-dont-ever-do-this = (((((foo).bar()).baz)))
 
-:answer: 42
+factorial = (n, m = 0) -> {
+	if (n.==(0)) {
+		m
+	} else {
+		self(n.-(1), n.+(m))
+	}
+}
+
+answer = 42
+super-answer = factorial(answer)
 
 :range: 0..9.map
 

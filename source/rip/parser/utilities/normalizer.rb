@@ -504,6 +504,25 @@ module Rip::Parser::Utilities
       )
     end
 
+    rule(parameter: simple(:parameter), default: simple(:default)) do |parameter:, default:, origin:|
+      Hashie::Mash.new(
+        type: :optional_parameter,
+        name: parameter.to_s,
+        default: default,
+        location: Rip::Parser::Location.from_slice(origin, parameter)
+      )
+    end
+
+    rule(parameter: simple(:parameter), type_argument: simple(:type_argument), default: simple(:default)) do |parameter:, type_argument:, default:, origin:|
+      Hashie::Mash.new(
+        type: :optional_parameter,
+        name: parameter.to_s,
+        type_argument: type_argument,
+        default: default,
+        location: Rip::Parser::Location.from_slice(origin, parameter)
+      )
+    end
+
 
     rule(fat_rocket: simple(:location), overloads: sequence(:overloads)) do |location:, overloads:, origin:|
       Hashie::Mash.new(
@@ -569,6 +588,47 @@ module Rip::Parser::Utilities
       Hashie::Mash.new(
         type: :class,
         properties: class_properties,
+        location: Rip::Parser::Location.from_slice(origin, location)
+      )
+    end
+
+
+    rule(if: simple(:location), condition: simple(:condition), consequence: simple(:consequence), else: 'else', alternative: simple(:alternative)) do |location:, condition:, consequence:, alternative:, origin:|
+      Hashie::Mash.new(
+        type: :binary_condition,
+        condition: condition,
+        consequence: [ consequence ],
+        alternative: [ alternative ],
+        location: Rip::Parser::Location.from_slice(origin, location)
+      )
+    end
+
+    rule(if: simple(:location), condition: simple(:condition), consequence: simple(:consequence), else: 'else', alternative: sequence(:alternative)) do |location:, condition:, consequence:, alternative:, origin:|
+      Hashie::Mash.new(
+        type: :binary_condition,
+        condition: condition,
+        consequence: [ consequence ],
+        alternative: alternative,
+        location: Rip::Parser::Location.from_slice(origin, location)
+      )
+    end
+
+    rule(if: simple(:location), condition: simple(:condition), consequence: sequence(:consequence), else: 'else', alternative: simple(:alternative)) do |location:, condition:, consequence:, alternative:, origin:|
+      Hashie::Mash.new(
+        type: :binary_condition,
+        condition: condition,
+        consequence: consequence,
+        alternative: [ alternative ],
+        location: Rip::Parser::Location.from_slice(origin, location)
+      )
+    end
+
+    rule(if: simple(:location), condition: simple(:condition), consequence: sequence(:consequence), else: 'else', alternative: sequence(:alternative)) do |location:, condition:, consequence:, alternative:, origin:|
+      Hashie::Mash.new(
+        type: :binary_condition,
+        condition: condition,
+        consequence: consequence,
+        alternative: alternative,
         location: Rip::Parser::Location.from_slice(origin, location)
       )
     end

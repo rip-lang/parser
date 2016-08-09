@@ -1,5 +1,6 @@
 require 'parslet'
 
+require_relative './binary_condition'
 require_relative './class'
 require_relative './character'
 require_relative './common'
@@ -22,6 +23,8 @@ require_relative './unit'
 module Rip::Parser::Rules
   module Expression
     include ::Parslet
+
+    include Rip::Parser::Rules::BinaryCondition
 
     include Rip::Parser::Rules::Common
 
@@ -78,7 +81,7 @@ module Rip::Parser::Rules
 
         # enum_block |
 
-        # condition_block_sequence |
+        binary_condition |
 
         # switch_block |
 
