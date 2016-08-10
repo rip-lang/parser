@@ -69,7 +69,7 @@ module Rip::Parser::Utilities
     rule(expression_chain: sequence(:parts)) do |parts:, origin:|
       parts.inject do |base, link|
         case
-          when link.key?(:property_name)   then link.merge(type: :property_access, object: base)
+          when link.key?(:property_name)   then link.merge(object: base)
           when link.key?(:value)           then link.merge(type: :pair, key: base)
           when link.key?(:end)             then link.merge(type: :range, start: base)
           when link.key?(:arguments)       then link.merge(callable: base)
@@ -104,6 +104,15 @@ module Rip::Parser::Utilities
     rule(location: simple(:location), property_name: simple(:property_name)) do |location:, property_name:, origin:|
       Hashie::Mash.new(
         type: :property_access,
+        property_name: property_name.to_s,
+        location: Rip::Parser::Location.from_slice(origin, location, location.length + property_name.offset - location.offset)
+      )
+    end
+
+    rule(object: simple(:object), location: simple(:location), property_name: simple(:property_name)) do |object:, location:, property_name:, origin:|
+      Hashie::Mash.new(
+        type: :property_access,
+        object: object,
         property_name: property_name.to_s,
         location: Rip::Parser::Location.from_slice(origin, location, location.length + property_name.offset - location.offset)
       )
@@ -549,32 +558,36 @@ module Rip::Parser::Utilities
       )
     end
 
-    rule(property_name: simple(:name), location: simple(:location), property_value: simple(:value)) do |name:, location:, value:, origin:|
+
+    rule(property_name: simple(:name)) do |name:, origin:|
       Hashie::Mash.new(
         type: :class_property,
-        name: name.to_s,
-        value: value,
-        location: Rip::Parser::Location.from_slice(origin, location)
+        name: name.to_s
       )
     end
 
-    rule(class_self: simple(:self), property_name: simple(:name), location: simple(:location), property_value: simple(:value)) do |self:, name:, location:, value:, origin:|
+    rule(class_self: simple(:self), location: simple(:location), property_name: simple(:name)) do |self:, location:, name:, origin:|
       Hashie::Mash.new(
         type: :class_property,
-        name: name.to_s,
-        value: value,
-        location: Rip::Parser::Location.from_slice(origin, location)
+        name: name.to_s
       )
     end
 
-    rule(class_prototype: simple(:prototype), property_name: simple(:name), location: simple(:location), property_value: simple(:value)) do |prototype:, name:, location:, value:, origin:|
+    rule(class_prototype: simple(:prototype), location: simple(:location), property_name: simple(:name)) do |prototype:, location:, name:, origin:|
       Hashie::Mash.new(
         type: :prototype_property,
-        name: name.to_s,
+        name: name.to_s
+      )
+    end
+
+
+    rule(property: simple(:property), location: simple(:location), property_value: simple(:value)) do |property:, location:, value:, origin:|
+      property.merge(
         value: value,
         location: Rip::Parser::Location.from_slice(origin, location)
       )
     end
+
 
     rule(class: simple(:location), body: simple(:class_property)) do |location:, class_property:, origin:|
       Hashie::Mash.new(

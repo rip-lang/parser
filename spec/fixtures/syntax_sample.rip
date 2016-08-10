@@ -68,7 +68,7 @@ Person = class {
 
 	@.initialize = => {
 		(name<String>) -> {
-			name = name
+			@.name = name
 		}
 	}
 

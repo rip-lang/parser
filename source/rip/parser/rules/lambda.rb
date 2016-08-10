@@ -38,7 +38,7 @@ module Rip::Parser::Rules
 
     def block_body(label = :body)
       brace_open >> whitespaces? >>
-        lines.as(label) >>
+        nested_lines.as(label) >>
         whitespaces? >> brace_close
     end
   end

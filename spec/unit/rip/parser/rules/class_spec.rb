@@ -25,8 +25,11 @@ RSpec.describe Rip::Parser::Rules::Class do
           { reference: 'Collection' }
         ],
         body: {
-          class_self: 'self',
-          property_name: 'foo',
+          property: {
+            class_self: 'self',
+            location: '.',
+            property_name: 'foo'
+          },
           location: '=',
           property_value: { expression_chain: { integer: '42' } }
         }
@@ -34,22 +37,35 @@ RSpec.describe Rip::Parser::Rules::Class do
     end
 
     it do
-      should parse('class () { foo = 42; @.bar = ~> { `F } }').as(
+      should parse('class () { foo = 42; @.initialize = ~> { @.bar = `F } }').as(
         class: 'class',
         ancestors: [],
         body: [
           {
-            property_name: 'foo',
+            property: {
+              property_name: 'foo'
+            },
             location: '=',
             property_value: { expression_chain: { integer: '42' } }
           },
           {
-            class_prototype: '@',
-            property_name: 'bar',
+            property: {
+              class_prototype: '@',
+              location: '.',
+              property_name: 'initialize'
+            },
             location: '=',
             property_value: {
               swerve_rocket: '~>',
-              body: { expression_chain: { location: '`', character: 'F' } }
+              body: {
+                lhs: {
+                  object: { reference: '@' },
+                  location: '.',
+                  property_name: 'bar'
+                },
+                location: '=',
+                rhs: { expression_chain: { location: '`', character: 'F' } }
+              }
             }
           }
         ]
@@ -80,13 +96,15 @@ RSpec.describe Rip::Parser::Rules::Class do
     end
   end
 
-  describe '#property_assignment' do
-    subject { parser.property_assignment }
+  describe '#class_property_assignment' do
+    subject { parser.class_property_assignment }
 
     it do
       should parse('foo = 42').as(
         {
-          property_name: 'foo',
+          property: {
+            property_name: 'foo'
+          },
           location: '=',
           property_value: { expression_chain: { integer: '42' } }
         }
@@ -96,7 +114,9 @@ RSpec.describe Rip::Parser::Rules::Class do
     it do
       should parse('foo = ~> { 42 }').as(
         {
-          property_name: 'foo',
+          property: {
+            property_name: 'foo'
+          },
           location: '=',
           property_value: {
             swerve_rocket: '~>',
@@ -109,8 +129,11 @@ RSpec.describe Rip::Parser::Rules::Class do
     it do
       should parse('self.[] = -> { 42 }').as(
         {
-          class_self: 'self',
-          property_name: '[]',
+          property: {
+            class_self: 'self',
+            location: '.',
+            property_name: '[]'
+          },
           location: '=',
           property_value: {
             dash_rocket: '->',
@@ -123,8 +146,11 @@ RSpec.describe Rip::Parser::Rules::Class do
     it do
       should parse('@.[] = => { -> { 42 } }').as(
         {
-          class_prototype: '@',
-          property_name: '[]',
+          property: {
+            class_prototype: '@',
+            location: '.',
+            property_name: '[]'
+          },
           location: '=',
           property_value: {
             fat_rocket: '=>',
