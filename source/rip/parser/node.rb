@@ -9,7 +9,9 @@ module Rip::Parser
     def initialize(location:, type:, **extra)
       @location = location
       @type = type
-      @extra = extra
+      @extra = extra.inject({}) do |memo, (key, value)|
+        memo.merge(key => self.class.try_convert(value))
+      end
     end
 
     def ==(other)
@@ -17,7 +19,11 @@ module Rip::Parser
     end
 
     def [](key)
-      to_h[key.to_sym]
+      case key.to_sym
+        when :location then location
+        when :type     then type
+        else                extra[key.to_sym]
+      end
     end
 
     def each(&block)
@@ -41,7 +47,11 @@ module Rip::Parser
     end
 
     def to_h
-      { location: location, type: type }.merge(extra)
+      _extra = extra.map do |key, value|
+        [ key, self.class.try_convert_to_h(value) ]
+      end.to_h
+
+      { location: location, type: type }.merge(_extra)
     end
 
     private
@@ -49,7 +59,7 @@ module Rip::Parser
     def method_missing(missing_method, *args, &block)
       case
       when key?(missing_method)
-        self[missing_method]
+        extra[missing_method]
       when missing_method.to_s.end_with?('?')
         missing_method.to_s.sub(/\?\z/, '').to_sym == type
       else
@@ -59,6 +69,28 @@ module Rip::Parser
 
     def respond_to_missing?(name, include_all)
       key?(name) || name.to_s.end_with?('?')
+    end
+
+    def self.try_convert(value)
+      case value
+      when Array
+        value.map(&method(:try_convert))
+      when Hash
+        new(value)
+      else
+        value
+      end
+    end
+
+    def self.try_convert_to_h(value)
+      case value
+      when Array
+        value.map(&method(:try_convert_to_h))
+      when self
+        value.to_h
+      else
+        value
+      end
     end
   end
 end

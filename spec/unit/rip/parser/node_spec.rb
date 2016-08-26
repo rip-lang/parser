@@ -64,6 +64,32 @@ RSpec.describe Rip::Parser::Node do
 
   describe '#to_h' do
     specify { expect(node.to_h.keys).to eq([ :location, :type, :answer ]) }
+
+    context 'nested tree' do
+      let(:tree) { Rip::Parser::Node.new(location: location, type: :root, other: node) }
+
+      let(:expected) do
+        {
+          location: location,
+          type: :root,
+          other: {
+            location: location,
+            type: :test,
+            answer: 42
+          }
+        }
+      end
+
+      specify { expect(tree.to_h).to eq(expected) }
+      specify { expect(tree.to_h[:other]).to be_a(Hash) }
+    end
+  end
+
+  describe '.new' do
+    let(:tree) { Rip::Parser::Node.new(location: location, type: :root, nested: { location: location, type: :nested, foo: :bar }) }
+
+    specify { expect(tree.nested).to be_a(Rip::Parser::Node) }
+    specify { expect(tree.nested.foo).to eq(:bar) }
   end
 
   context 'dynamic message lookup' do
