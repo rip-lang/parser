@@ -62,6 +62,29 @@ RSpec.describe Rip::Parser::Node do
     specify { expect(node.merge(other).to_h).to eq(location: location, type: :other_test, answer: 42, foo: :bar) }
   end
 
+  describe '#s_expression' do
+    let(:tree) { Rip::Parser::Node.new(location: location, type: :root, children: [ node ]) }
+
+    let(:expected) do
+      {
+        type: :root,
+        children: [
+          {
+            type: :test,
+            answer: 42
+          }
+        ]
+      }
+    end
+
+    specify { expect(tree.s_expression).to eq(expected) }
+    specify { expect(tree.s_expression).to be_a(Hash) }
+
+    specify { expect(tree.s_expression.keys).to eq([ :type, :children ]) }
+
+    specify { expect(tree.s_expression[:children].first).to be_a(Hash) }
+  end
+
   describe '#to_h' do
     specify { expect(node.to_h.keys).to eq([ :location, :type, :answer ]) }
 
