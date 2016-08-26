@@ -102,6 +102,8 @@ module Rip::Parser::Rules
         string |
         regular_expression |
 
+        # markup_fragment |
+
         list |
 
         map |
