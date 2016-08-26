@@ -11,22 +11,18 @@ RSpec.describe Rip::Parser do
     subject { parse_tree }
 
     def find_rhs(name)
-      parse_tree.expressions.select do |expression|
-        expression.type == :assignment
-      end.detect do |assignment|
+      parse_tree.expressions.select(&:assignment?).detect do |assignment|
         assignment.lhs.name == name.to_s
       end.rhs
     end
 
-    it { should be_an_instance_of(Hashie::Mash) }
+    it { should be_an_instance_of(Rip::Parser::Node) }
 
     context 'top-level' do
       let(:expressions) { parse_tree.expressions }
 
       let(:assignment_values) do
-        parse_tree.expressions.select do |expression|
-          expression.type == :assignment
-        end.map(&:rhs)
+        parse_tree.expressions.select(&:assignment?).map(&:rhs)
       end
 
       let(:actual_counts) do
@@ -67,7 +63,7 @@ RSpec.describe Rip::Parser do
       let(:list) { parse_tree.expressions.detect { |e| e.type == :list } }
 
       let(:range) do
-        parse_tree.expressions.select(&:value).detect do |pair|
+        parse_tree.expressions.select(&:pair?).detect do |pair|
           pair[:key].characters.map(&:data).join('') == 'range'
         end.value
       end
@@ -76,11 +72,11 @@ RSpec.describe Rip::Parser do
 
       specify { expect(list.items.count).to eq(3) }
 
-      specify { expect(list.items.select { |i| i.type == :character }.count).to eq(1) }
+      specify { expect(list.items.select(&:character?).count).to eq(1) }
 
-      specify { expect(list.items.select { |i| i.type == :escape_special }.count).to eq(1) }
+      specify { expect(list.items.select(&:escape_special?).count).to eq(1) }
 
-      specify { expect(list.items.select { |i| i.type == :escape_unicode }.count).to eq(1) }
+      specify { expect(list.items.select(&:escape_unicode?).count).to eq(1) }
 
       specify { expect(range.start.integer).to eq('0') }
       specify { expect(range.end.object.integer).to eq('9') }

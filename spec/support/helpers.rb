@@ -1,5 +1,3 @@
-require 'hashie'
-
 module RSpecHelpers
   def recognizes_as_expected(description, *flags, &block)
     context description, *flags do

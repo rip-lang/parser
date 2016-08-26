@@ -1,10 +1,7 @@
-require 'hashie'
-
 module Rip
   module Parser
     def self.load(origin, source_code)
-      tree = Rip::Parser::Grammar.parse(origin, source_code)
-      Hashie::Mash.new(tree)
+      Rip::Parser::Grammar.parse(origin, source_code)
     end
 
     def self.load_file(module_path)
@@ -23,4 +20,5 @@ require_relative './parser/error'
 require_relative './parser/grammar'
 require_relative './parser/keywords'
 require_relative './parser/location'
+require_relative './parser/node'
 require_relative './parser/rules'
