@@ -31,7 +31,7 @@ RSpec.describe Rip::Parser::Node do
     specify do
       expect do |x|
         node.each(&x)
-      end.to yield_successive_args([ :answer, 42 ], [ :location, location ], [ :type, :test ])
+      end.to yield_successive_args([ :location, location ], [ :type, :test ], [ :answer, 42 ])
     end
   end
 
@@ -62,11 +62,57 @@ RSpec.describe Rip::Parser::Node do
     specify { expect(node.merge(other).to_h).to eq(location: location, type: :other_test, answer: 42, foo: :bar) }
   end
 
-  describe '#to_h' do
-    specify { expect(node.to_h.keys).to all(be_a(Symbol)) }
+  describe '#s_expression' do
+    let(:tree) { Rip::Parser::Node.new(location: location, type: :root, children: [ node ]) }
 
-    specify { expect(node.to_h).to include(:location) }
-    specify { expect(node.to_h).to include(:type) }
+    let(:expected) do
+      {
+        type: :root,
+        children: [
+          {
+            type: :test,
+            answer: 42
+          }
+        ]
+      }
+    end
+
+    specify { expect(tree.s_expression).to eq(expected) }
+    specify { expect(tree.s_expression).to be_a(Hash) }
+
+    specify { expect(tree.s_expression.keys).to eq([ :type, :children ]) }
+
+    specify { expect(tree.s_expression[:children].first).to be_a(Hash) }
+  end
+
+  describe '#to_h' do
+    specify { expect(node.to_h.keys).to eq([ :location, :type, :answer ]) }
+
+    context 'nested tree' do
+      let(:tree) { Rip::Parser::Node.new(location: location, type: :root, other: node) }
+
+      let(:expected) do
+        {
+          location: location,
+          type: :root,
+          other: {
+            location: location,
+            type: :test,
+            answer: 42
+          }
+        }
+      end
+
+      specify { expect(tree.to_h).to eq(expected) }
+      specify { expect(tree.to_h[:other]).to be_a(Hash) }
+    end
+  end
+
+  describe '.new' do
+    let(:tree) { Rip::Parser::Node.new(location: location, type: :root, nested: { location: location, type: :nested, foo: :bar }) }
+
+    specify { expect(tree.nested).to be_a(Rip::Parser::Node) }
+    specify { expect(tree.nested.foo).to eq(:bar) }
   end
 
   context 'dynamic message lookup' do
