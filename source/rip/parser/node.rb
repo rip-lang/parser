@@ -41,7 +41,7 @@ module Rip::Parser
     end
 
     def to_h
-      extra.merge(location: location, type: type)
+      { location: location, type: type }.merge(extra)
     end
 
     private

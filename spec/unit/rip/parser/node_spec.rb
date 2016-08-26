@@ -31,7 +31,7 @@ RSpec.describe Rip::Parser::Node do
     specify do
       expect do |x|
         node.each(&x)
-      end.to yield_successive_args([ :answer, 42 ], [ :location, location ], [ :type, :test ])
+      end.to yield_successive_args([ :location, location ], [ :type, :test ], [ :answer, 42 ])
     end
   end
 
@@ -63,10 +63,7 @@ RSpec.describe Rip::Parser::Node do
   end
 
   describe '#to_h' do
-    specify { expect(node.to_h.keys).to all(be_a(Symbol)) }
-
-    specify { expect(node.to_h).to include(:location) }
-    specify { expect(node.to_h).to include(:type) }
+    specify { expect(node.to_h.keys).to eq([ :location, :type, :answer ]) }
   end
 
   context 'dynamic message lookup' do
