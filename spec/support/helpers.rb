@@ -1,20 +1,7 @@
 module RSpecHelpers
-  def recognizes_as_expected(description, *flags, &block)
-    context description, *flags do
-      instance_exec &block
-      specify do
-        if defined? expected_raw
-          expect(rip).to parse_raw_as(expected_raw)
-        end
-
-        if defined? expected
-          expect(rip).to parse_as(Hashie::Mash.new(expected))
-        end
-      end
-    end
-  end
-
   def profile_parslet(rip, parslet = :lines)
+    binding.pry
+
     result = RubyProf.profile do
       parser(rip).send(parslet).parse_tree
     end
@@ -38,36 +25,12 @@ module RSpecHelpers
     tree.print(STDOUT)
   end
 
-  def new_location(origin, offset, line, column)
-    Rip::Parser::Location.new(origin, offset, line, column)
-  end
-
   def location_for(options = {})
     origin = options[:origin] || Pathname.pwd
     offset = options[:offset] || 0
     line = options[:line] || 1
     column = options[:column] || 1
-    new_location(origin, offset, line, column)
-  end
-
-  def raw_parse_tree(source_code)
-    Rip::Parser.raw_tree(Pathname.pwd, source_code)
-  end
-
-  def parse_tree(source_code)
-    Rip::Parser.tree(Pathname.pwd, source_code)
-  end
-
-  def rip_string_raw(string)
-    string.split('').map do |s|
-      { :character => s }
-    end
-  end
-
-  def rip_string(string)
-    rip_string_raw(string).map do |s|
-      s.merge(:location => s[:character])
-    end
+    Rip::Parser::Location.new(origin, offset, line, column)
   end
 
   # http://apidock.com/rails/String/strip_heredoc
