@@ -4,8 +4,8 @@ RSpec.describe Rip::Parser::Rules::InvocationIndex do
   class InvocationIndexParser
     include ::Parslet
 
-    include Rip::Parser::Rules::Expression
     include Rip::Parser::Rules::InvocationIndex
+    include Rip::Parser::Rules::Module
   end
 
   let(:parser) { InvocationIndexParser.new }

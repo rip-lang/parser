@@ -24,7 +24,7 @@ module Rip::Parser::Rules
 
     rule(:heredoc_start) { angled_open.repeat(2, 2).as(:location) >> match['A-Z_'].repeat(1).capture(:heredoc_label).as(:label) >> line_break }
 
-    rule(:heredoc_content) { (heredoc_end.absent? >> (escape_sequence | any.as(:character))).repeat }
+    rule(:heredoc_content) { (heredoc_end.absent? >> (interpolation | escape_sequence | any.as(:character))).repeat }
 
     rule(:heredoc_end) do
       dynamic do |source, context|
@@ -32,8 +32,10 @@ module Rip::Parser::Rules
       end
     end
 
+    rule(:interpolation) { (pound >> brace_open).as(:location) >> whitespaces? >> expression.as(:interpolation) >> whitespaces? >> brace_close }
+
     def string_parser(delimiter, inner_special, label)
-      delimiter.as(:location) >> (delimiter.absent? >> (inner_special | any.as(:character))).repeat.as(label) >> delimiter
+      delimiter.as(:location) >> (delimiter.absent? >> (interpolation | inner_special | any.as(:character))).repeat.as(label) >> delimiter
     end
   end
 end

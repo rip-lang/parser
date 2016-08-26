@@ -1,4 +1,3 @@
-require 'hashie'
 require 'parslet'
 
 module Rip::Parser::Utilities
@@ -20,8 +19,8 @@ module Rip::Parser::Utilities
         tree.each do |branch|
           validate_branches(branch, origin)
         end
-      when Hash, Hashie::Mash
-        tree.each_value do |branch|
+      when Hash, Rip::Parser::Node
+        tree.each do |_, branch|
           validate_branches(branch, origin)
         end
 
@@ -41,19 +40,9 @@ module Rip::Parser::Utilities
         tree.each do |branch|
           validate_leaves(branch, origin)
         end
-      when Hashie::Mash
-        tree.each_value do |branch|
+      when Rip::Parser::Node
+        tree.each do |_, branch|
           validate_leaves(branch, origin)
-        end
-
-        unless tree.key?(:location)
-          warn tree
-          raise Rip::Parser::NormalizeError.new('Node has no location', origin, tree)
-        end
-
-        unless tree.key?(:type)
-          warn tree
-          raise Rip::Parser::NormalizeError.new('Node has no type', origin, tree)
         end
       when Parslet::Slice
         warn tree
@@ -69,12 +58,12 @@ module Rip::Parser::Utilities
     rule(expression_chain: sequence(:parts)) do |parts:, origin:|
       parts.inject do |base, link|
         case
-          when link.key?(:property_name)   then link.merge(type: :property_access, object: base)
-          when link.key?(:value)           then link.merge(type: :pair, key: base)
-          when link.key?(:end)             then link.merge(type: :range, start: base)
-          when link.key?(:arguments)       then link.merge(callable: base)
-          when link.key?(:index_arguments)
-            Hashie::Mash.new(
+          when link.property_access?  then link.merge(object: base)
+          when link.pair_value?       then link.merge(type: :pair, key: base)
+          when link.range_end?        then link.merge(type: :range, start: base)
+          when link.invocation?       then link.merge(callable: base)
+          when link.invocation_index?
+            Rip::Parser::Node.new(
               type: :invocation_infix,
               callable: {
                 type: :property_access,
@@ -93,7 +82,7 @@ module Rip::Parser::Utilities
     end
 
     rule(lhs: simple(:lhs), location: simple(:location), rhs: simple(:rhs)) do |lhs:, location:, rhs:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :assignment,
         lhs: lhs,
         rhs: rhs,
@@ -102,15 +91,24 @@ module Rip::Parser::Utilities
     end
 
     rule(location: simple(:location), property_name: simple(:property_name)) do |location:, property_name:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :property_access,
         property_name: property_name.to_s,
         location: Rip::Parser::Location.from_slice(origin, location, location.length + property_name.offset - location.offset)
       )
     end
 
+    rule(object: simple(:object), location: simple(:location), property_name: simple(:property_name)) do |object:, location:, property_name:, origin:|
+      Rip::Parser::Node.new(
+        type: :property_access,
+        object: object,
+        property_name: property_name.to_s,
+        location: Rip::Parser::Location.from_slice(origin, location, location.length + property_name.offset - location.offset)
+      )
+    end
+
     rule(location: simple(:location), value: simple(:value)) do |location:, value:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :pair_value,
         value: value,
         location: Rip::Parser::Location.from_slice(origin, location, location.length + value.location.length)
@@ -118,7 +116,7 @@ module Rip::Parser::Utilities
     end
 
     rule(location: simple(:location), end: simple(:_end)) do |location:, _end:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :range_end,
         end: _end,
         location: Rip::Parser::Location.from_slice(origin, location, location.length + _end.location.length)
@@ -126,7 +124,7 @@ module Rip::Parser::Utilities
     end
 
     rule(location: simple(:location), arguments: sequence(:arguments)) do |location:, arguments:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :invocation,
         arguments: arguments,
         location: Rip::Parser::Location.from_slice(origin, location, location.length + arguments.map(&:location).map(&:length).inject(0, &:+))
@@ -134,7 +132,7 @@ module Rip::Parser::Utilities
     end
 
     rule(location: simple(:location), index_arguments: sequence(:arguments)) do |location:, arguments:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :invocation_index,
         index_arguments: arguments,
         location: Rip::Parser::Location.from_slice(origin, location, location.length + arguments.map(&:location).map(&:length).inject(0, &:+))
@@ -143,7 +141,7 @@ module Rip::Parser::Utilities
 
 
     rule(module: simple(:expression)) do |expression:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :module,
         expressions: [ expression ],
         location: Rip::Parser::Location.new(origin, 0, 0, 0)
@@ -151,7 +149,7 @@ module Rip::Parser::Utilities
     end
 
     rule(module: sequence(:expressions)) do |expressions:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :module,
         expressions: expressions,
         location: Rip::Parser::Location.new(origin, 0, 0, 0)
@@ -160,7 +158,7 @@ module Rip::Parser::Utilities
 
 
     rule(import: simple(:location), module_name: simple(:module_name)) do |location:, module_name:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :import,
         module_name: module_name,
         location: Rip::Parser::Location.from_slice(origin, location, location.length + module_name.location.offset - location.offset)
@@ -168,8 +166,96 @@ module Rip::Parser::Utilities
     end
 
 
+    rule(date: simple(:date), time: simple(:time)) do |date:, time:, origin:|
+      Rip::Parser::Node.new(
+        type: :date_time,
+        date: date,
+        time: time,
+        location: date.location.add_character(1 + time.length)
+      )
+    end
+
+    rule(year: simple(:year), month: simple(:month), day: simple(:day)) do |year:, month:, day:, origin:|
+      Rip::Parser::Node.new(
+        type: :date,
+        year: year.to_s,
+        month: month.to_s,
+        day: day.to_s,
+        location: Rip::Parser::Location.from_slice(origin, year + '-' + month + '-' + day)
+      )
+    end
+
+    rule(hour: simple(:hour), minute: simple(:minute), second: simple(:second)) do |hour:, minute:, second:, origin:|
+      Rip::Parser::Node.new(
+        type: :time,
+        hour: hour.to_s,
+        minute: minute.to_s,
+        second: second.to_s,
+        location: Rip::Parser::Location.from_slice(origin, hour + '-' + minute + '-' + second)
+      )
+    end
+
+    rule(hour: simple(:hour), minute: simple(:minute), second: simple(:second), sub_second: simple(:sub_second)) do |hour:, minute:, second:, sub_second:, origin:|
+      Rip::Parser::Node.new(
+        type: :time,
+        hour: hour.to_s,
+        minute: minute.to_s,
+        second: second.to_s,
+        sub_second: sub_second.to_s,
+        location: Rip::Parser::Location.from_slice(origin, hour + '-' + minute + '-' + second + '.' + sub_second)
+      )
+    end
+
+    rule(hour: simple(:hour), minute: simple(:minute), second: simple(:second), offset: simple(:offset)) do |hour:, minute:, second:, offset:, origin:|
+      slice = hour + '-' + minute + '-' + second
+
+      Rip::Parser::Node.new(
+        type: :time,
+        hour: hour.to_s,
+        minute: minute.to_s,
+        second: second.to_s,
+        offset: offset,
+        location: Rip::Parser::Location.from_slice(origin, slice, slice.length + offset.length)
+      )
+    end
+
+    rule(hour: simple(:hour), minute: simple(:minute), second: simple(:second), sub_second: simple(:sub_second), offset: simple(:offset)) do |hour:, minute:, second:, sub_second:, offset:, origin:|
+      slice = hour + '-' + minute + '-' + second + '.' + sub_second
+
+      Rip::Parser::Node.new(
+        type: :time,
+        hour: hour.to_s,
+        minute: minute.to_s,
+        second: second.to_s,
+        sub_second: sub_second.to_s,
+        offset: offset,
+        location: Rip::Parser::Location.from_slice(origin, slice, slice.length + offset.length)
+      )
+    end
+
+    rule(sign: simple(:sign), hour: simple(:hour), minute: simple(:minute)) do |sign:, hour:, minute:, origin:|
+      Rip::Parser::Node.new(
+        type: :time_offset,
+        sign: sign.to_sym,
+        hour: hour.to_s,
+        minute: minute.to_s,
+        location: Rip::Parser::Location.from_slice(origin, sign + hour + minute)
+      )
+    end
+
+
+    rule(magnitude: simple(:magnitude), label: simple(:label)) do |magnitude:, label:, origin:|
+      Rip::Parser::Node.new(
+        type: :unit,
+        magnitude: magnitude,
+        label: label.to_s,
+        location: magnitude.location.add_character(label.length)
+      )
+    end
+
+
     rule(integer: simple(:integer)) do |integer:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :integer,
         sign: :+,
         integer: integer.to_s,
@@ -178,7 +264,7 @@ module Rip::Parser::Utilities
     end
 
     rule(integer: simple(:integer), decimal: simple(:decimal)) do |integer:, decimal:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :decimal,
         sign: :+,
         integer: integer.to_s,
@@ -188,7 +274,7 @@ module Rip::Parser::Utilities
     end
 
     rule(sign: simple(:sign), integer: simple(:integer)) do |sign:, integer:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :integer,
         sign: sign.to_sym,
         integer: integer.to_s,
@@ -197,7 +283,7 @@ module Rip::Parser::Utilities
     end
 
     rule(sign: simple(:sign), integer: simple(:integer), decimal: simple(:decimal)) do |sign:, integer:, decimal:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :decimal,
         sign: sign.to_sym,
         integer: integer.to_s,
@@ -208,7 +294,7 @@ module Rip::Parser::Utilities
 
 
     rule(escape_unicode: simple(:sequence), escape_location: simple(:escape_location)) do |sequence:, escape_location:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :escape_unicode,
         sequence: sequence.to_s,
         location: Rip::Parser::Location.from_slice(origin, escape_location, escape_location.length + sequence.length)
@@ -216,7 +302,7 @@ module Rip::Parser::Utilities
     end
 
     rule(escape_unicode: simple(:sequence), escape_location: simple(:escape_location), location: simple(:location)) do |sequence:, location:, escape_location:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :escape_unicode,
         sequence: sequence.to_s,
         location: Rip::Parser::Location.from_slice(origin, location, [ location, escape_location, sequence ].map(&:length).inject(&:+))
@@ -225,7 +311,7 @@ module Rip::Parser::Utilities
 
 
     rule(escape_special: simple(:sequence), escape_location: simple(:escape_location)) do |sequence:, escape_location:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :escape_special,
         sequence: sequence.to_s,
         location: Rip::Parser::Location.from_slice(origin, escape_location, escape_location.length + sequence.length)
@@ -233,7 +319,7 @@ module Rip::Parser::Utilities
     end
 
     rule(escape_special: simple(:sequence), escape_location: simple(:escape_location), location: simple(:location)) do |sequence:, location:, escape_location:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :escape_special,
         sequence: sequence.to_s,
         location: Rip::Parser::Location.from_slice(origin, location, [ location, escape_location, sequence ].map(&:length).inject(&:+))
@@ -242,7 +328,7 @@ module Rip::Parser::Utilities
 
 
     rule(escape_any: simple(:sequence), escape_location: simple(:escape_location)) do |sequence:, escape_location:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :escape_any,
         sequence: sequence.to_s,
         location: Rip::Parser::Location.from_slice(origin, escape_location, escape_location.length + sequence.length)
@@ -250,7 +336,7 @@ module Rip::Parser::Utilities
     end
 
     rule(escape_any: simple(:sequence), escape_location: simple(:escape_location), location: simple(:location)) do |sequence:, location:, escape_location:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :escape_any,
         sequence: sequence.to_s,
         location: Rip::Parser::Location.from_slice(origin, location, [ location, escape_location, sequence ].map(&:length).inject(&:+))
@@ -259,7 +345,7 @@ module Rip::Parser::Utilities
 
 
     rule(character: simple(:character)) do |character:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :character,
         data: character.to_s,
         location: Rip::Parser::Location.from_slice(origin, character, character.length)
@@ -267,7 +353,7 @@ module Rip::Parser::Utilities
     end
 
     rule(character: simple(:character), location: simple(:location)) do |character:, location:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :character,
         data: character.to_s,
         location: Rip::Parser::Location.from_slice(origin, location, location.length + character.length)
@@ -280,10 +366,19 @@ module Rip::Parser::Utilities
         memo + character.location.length
       end
 
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :regular_expression,
         pattern: characters,
         location: Rip::Parser::Location.from_slice(origin, location, length)
+      )
+    end
+
+
+    rule(interpolation: simple(:expression), location: simple(:location)) do |expression:, location:, origin:|
+      Rip::Parser::Node.new(
+        type: :interpolation,
+        expression: expression,
+        location: Rip::Parser::Location.from_slice(origin, location, location.length + expression.length)
       )
     end
 
@@ -298,7 +393,7 @@ module Rip::Parser::Utilities
         memo + character.location.length
       end
 
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :string,
         characters: characters,
         location: Rip::Parser::Location.from_slice(origin, location, length)
@@ -310,7 +405,7 @@ module Rip::Parser::Utilities
         memo + character.location.length
       end
 
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :string,
         label: label.to_s,
         characters: characters,
@@ -324,7 +419,7 @@ module Rip::Parser::Utilities
         memo + item.location.length
       end
 
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :list,
         items: items,
         location: Rip::Parser::Location.from_slice(origin, location, length)
@@ -336,7 +431,7 @@ module Rip::Parser::Utilities
         memo + pair.location.length
       end
 
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :map,
         pairs: pairs,
         location: Rip::Parser::Location.from_slice(origin, location, length)
@@ -345,7 +440,7 @@ module Rip::Parser::Utilities
 
 
     rule(reference: simple(:reference)) do |reference:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :reference,
         name: reference.to_s,
         location: Rip::Parser::Location.from_slice(origin, reference)
@@ -354,7 +449,7 @@ module Rip::Parser::Utilities
 
 
     rule(dash_rocket: simple(:location), body: simple(:expression)) do |location:, expression:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :overload,
         parameters: [],
         body: [ expression ],
@@ -363,7 +458,7 @@ module Rip::Parser::Utilities
     end
 
     rule(dash_rocket: simple(:location), parameters: sequence(:parameters), body: simple(:expression)) do |location:, parameters:, expression:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :overload,
         parameters: parameters,
         body: [ expression ],
@@ -372,7 +467,7 @@ module Rip::Parser::Utilities
     end
 
     rule(dash_rocket: simple(:location), body: sequence(:body)) do |location:, body:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :overload,
         parameters: [],
         body: body,
@@ -381,7 +476,7 @@ module Rip::Parser::Utilities
     end
 
     rule(dash_rocket: simple(:location), parameters: sequence(:parameters), body: sequence(:body)) do |location:, parameters:, body:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :overload,
         parameters: parameters,
         body: body,
@@ -389,26 +484,46 @@ module Rip::Parser::Utilities
       )
     end
 
+
     rule(parameter: simple(:parameter)) do |parameter:, origin:|
-      Hashie::Mash.new(
-        type: :parameter,
+      Rip::Parser::Node.new(
+        type: :required_parameter,
         name: parameter.to_s,
         location: Rip::Parser::Location.from_slice(origin, parameter)
       )
     end
 
     rule(parameter: simple(:parameter), type_argument: simple(:type_argument)) do |parameter:, type_argument:, origin:|
-      Hashie::Mash.new(
-        type: :parameter,
+      Rip::Parser::Node.new(
+        type: :required_parameter,
         name: parameter.to_s,
         type_argument: type_argument,
         location: Rip::Parser::Location.from_slice(origin, parameter)
       )
     end
 
+    rule(parameter: simple(:parameter), default: simple(:default)) do |parameter:, default:, origin:|
+      Rip::Parser::Node.new(
+        type: :optional_parameter,
+        name: parameter.to_s,
+        default: default,
+        location: Rip::Parser::Location.from_slice(origin, parameter)
+      )
+    end
+
+    rule(parameter: simple(:parameter), type_argument: simple(:type_argument), default: simple(:default)) do |parameter:, type_argument:, default:, origin:|
+      Rip::Parser::Node.new(
+        type: :optional_parameter,
+        name: parameter.to_s,
+        type_argument: type_argument,
+        default: default,
+        location: Rip::Parser::Location.from_slice(origin, parameter)
+      )
+    end
+
 
     rule(fat_rocket: simple(:location), overloads: sequence(:overloads)) do |location:, overloads:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :lambda,
         overloads: overloads,
         location: Rip::Parser::Location.from_slice(origin, location)
@@ -417,7 +532,7 @@ module Rip::Parser::Utilities
 
 
     rule(swerve_rocket: simple(:location), body: simple(:expression)) do |location:, expression:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :property,
         body: [ expression ],
         location: Rip::Parser::Location.from_slice(origin, location)
@@ -425,42 +540,46 @@ module Rip::Parser::Utilities
     end
 
     rule(swerve_rocket: simple(:location), body: sequence(:expressions)) do |location:, expressions:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :property,
         body: expressions,
         location: Rip::Parser::Location.from_slice(origin, location)
       )
     end
 
-    rule(property_name: simple(:name), location: simple(:location), property_value: simple(:value)) do |name:, location:, value:, origin:|
-      Hashie::Mash.new(
+
+    rule(property_name: simple(:name)) do |name:, origin:|
+      Rip::Parser::Node.new(
         type: :class_property,
         name: name.to_s,
-        value: value,
+        location: Rip::Parser::Location.from_slice(origin, name)
+      )
+    end
+
+    rule(class_self: simple(:self), location: simple(:location), property_name: simple(:name)) do |self:, location:, name:, origin:|
+      Rip::Parser::Node.new(
+        type: :class_property,
+        name: name.to_s,
         location: Rip::Parser::Location.from_slice(origin, location)
       )
     end
 
-    rule(class_self: simple(:self), property_name: simple(:name), location: simple(:location), property_value: simple(:value)) do |self:, name:, location:, value:, origin:|
-      Hashie::Mash.new(
-        type: :class_property,
-        name: name.to_s,
-        value: value,
-        location: Rip::Parser::Location.from_slice(origin, location)
-      )
-    end
-
-    rule(class_prototype: simple(:prototype), property_name: simple(:name), location: simple(:location), property_value: simple(:value)) do |prototype:, name:, location:, value:, origin:|
-      Hashie::Mash.new(
+    rule(class_prototype: simple(:prototype), location: simple(:location), property_name: simple(:name)) do |prototype:, location:, name:, origin:|
+      Rip::Parser::Node.new(
         type: :prototype_property,
         name: name.to_s,
-        value: value,
         location: Rip::Parser::Location.from_slice(origin, location)
       )
     end
 
+
+    rule(property: simple(:property), location: simple(:location), property_value: simple(:value)) do |property:, location:, value:, origin:|
+      property.merge(value: value)
+    end
+
+
     rule(class: simple(:location), body: simple(:class_property)) do |location:, class_property:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :class,
         properties: Array(class_property),
         location: Rip::Parser::Location.from_slice(origin, location)
@@ -468,9 +587,50 @@ module Rip::Parser::Utilities
     end
 
     rule(class: simple(:location), body: sequence(:class_properties)) do |location:, class_properties:, origin:|
-      Hashie::Mash.new(
+      Rip::Parser::Node.new(
         type: :class,
         properties: class_properties,
+        location: Rip::Parser::Location.from_slice(origin, location)
+      )
+    end
+
+
+    rule(if: simple(:location), condition: simple(:condition), consequence: simple(:consequence), else: 'else', alternative: simple(:alternative)) do |location:, condition:, consequence:, alternative:, origin:|
+      Rip::Parser::Node.new(
+        type: :binary_condition,
+        condition: condition,
+        consequence: [ consequence ],
+        alternative: [ alternative ],
+        location: Rip::Parser::Location.from_slice(origin, location)
+      )
+    end
+
+    rule(if: simple(:location), condition: simple(:condition), consequence: simple(:consequence), else: 'else', alternative: sequence(:alternative)) do |location:, condition:, consequence:, alternative:, origin:|
+      Rip::Parser::Node.new(
+        type: :binary_condition,
+        condition: condition,
+        consequence: [ consequence ],
+        alternative: alternative,
+        location: Rip::Parser::Location.from_slice(origin, location)
+      )
+    end
+
+    rule(if: simple(:location), condition: simple(:condition), consequence: sequence(:consequence), else: 'else', alternative: simple(:alternative)) do |location:, condition:, consequence:, alternative:, origin:|
+      Rip::Parser::Node.new(
+        type: :binary_condition,
+        condition: condition,
+        consequence: consequence,
+        alternative: [ alternative ],
+        location: Rip::Parser::Location.from_slice(origin, location)
+      )
+    end
+
+    rule(if: simple(:location), condition: simple(:condition), consequence: sequence(:consequence), else: 'else', alternative: sequence(:alternative)) do |location:, condition:, consequence:, alternative:, origin:|
+      Rip::Parser::Node.new(
+        type: :binary_condition,
+        condition: condition,
+        consequence: consequence,
+        alternative: alternative,
         location: Rip::Parser::Location.from_slice(origin, location)
       )
     end

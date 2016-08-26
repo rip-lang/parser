@@ -32,13 +32,13 @@ module Rip::Parser::Rules
     rule(:parameters_list) { csv(optional_parameter | required_parameter) }
 
     rule(:required_parameter) { word.as(:parameter) >> parameter_type_argument.maybe }
-    rule(:optional_parameter) { required_parameter >> whitespaces? >> equals >> whitespaces? >> expression.as(:default) }
+    rule(:optional_parameter) { required_parameter >> spaces >> equals >> whitespaces >> expression.as(:default) }
 
     rule(:parameter_type_argument) { angled_open >> spaces? >> reference.as(:type_argument) >> spaces? >> angled_close }
 
-    rule(:block_body) do
+    def block_body(label = :body)
       brace_open >> whitespaces? >>
-        lines.as(:body) >>
+        nested_lines.as(label) >>
         whitespaces? >> brace_close
     end
   end

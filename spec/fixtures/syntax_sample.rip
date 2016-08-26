@@ -29,7 +29,16 @@ FOO
 
 please-dont-ever-do-this = (((((foo).bar()).baz)))
 
-:answer: 42
+factorial = (n, m = 0) -> {
+	if (n.==(0)) {
+		m
+	} else {
+		self(n.-(1), n.+(m))
+	}
+}
+
+answer = 42
+super-answer = factorial(answer)
 
 :range: 0..9.map
 
@@ -59,7 +68,7 @@ Person = class {
 
 	@.initialize = => {
 		(name<String>) -> {
-			name = name
+			@.name = name
 		}
 	}
 
@@ -69,6 +78,16 @@ Person = class {
 System = class {
 	String = import "./string"
 }
+
+"a#{b.c}d"
+/a#{b.c}d/
+
+rip_initial_commit = 2012-02-12T00:24:00-0500
+
+lunch-time = 12:30:00.today()
+
+space = 100_000km
+mariana = -10_994km
 
 foo()
 list[42]

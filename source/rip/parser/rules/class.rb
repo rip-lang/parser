@@ -29,18 +29,20 @@ module Rip::Parser::Rules
     end
 
     rule(:class_body) do
-      whitespaces? >> property_assignment >> spaces? >> (
+      whitespaces? >> class_property_assignment >> spaces? >> (
         (semicolon | line_break) >> whitespaces? >> class_body
       ).repeat(0) >> whitespaces?
     end
 
-    rule(:property_assignment) do
-      class_property >> spaces? >> equals.as(:location) >> whitespaces >> property_value.as(:property_value)
+    rule(:class_property_assignment) do
+      class_property.as(:property) >> spaces >>
+        equals.as(:location) >> whitespaces >>
+        property_value.as(:property_value)
     end
 
     rule(:class_property) do
-      keyword(:class_prototype) >> spaces? >> dot >> spaces? >> property_name.as(:property_name) |
-        keyword(:class_self) >> spaces? >> dot >> spaces? >> property_name.as(:property_name) |
+      keyword(:class_prototype) >> property |
+        keyword(:class_self) >> property |
         word.as(:property_name)
     end
 

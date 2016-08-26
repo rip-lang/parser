@@ -3,6 +3,7 @@ require 'spec_helper'
 RSpec.describe Rip::Parser::Rules::Expression do
   class ExpressionParser
     include Rip::Parser::Rules::Expression
+    include Rip::Parser::Rules::Module
   end
 
   let(:parser) { ExpressionParser.new }

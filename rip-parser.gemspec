@@ -11,7 +11,6 @@ Gem::Specification.new do |spec|
   spec.files         = `git ls-files -z`.split("\x0")
   spec.require_paths = [ 'source' ]
 
-  spec.add_runtime_dependency 'hashie'
   spec.add_runtime_dependency 'parslet', '~> 1.7.0'
 
   spec.add_development_dependency 'pry'

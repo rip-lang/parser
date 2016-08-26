@@ -1,8 +1,10 @@
 require 'parslet'
 
+require_relative './binary_condition'
 require_relative './class'
 require_relative './character'
 require_relative './common'
+require_relative './date_time'
 require_relative './import'
 require_relative './invocation'
 require_relative './invocation_index'
@@ -16,14 +18,19 @@ require_relative './property'
 require_relative './range'
 require_relative './reference'
 require_relative './string'
+require_relative './unit'
 
 module Rip::Parser::Rules
   module Expression
     include ::Parslet
 
+    include Rip::Parser::Rules::BinaryCondition
+
     include Rip::Parser::Rules::Common
 
     include Rip::Parser::Rules::Class
+
+    include Rip::Parser::Rules::DateTime
 
     include Rip::Parser::Rules::Number
 
@@ -51,6 +58,8 @@ module Rip::Parser::Rules
 
     include Rip::Parser::Rules::Reference
 
+    include Rip::Parser::Rules::Unit
+
     rule(:expression) { expression_chain }
 
     rule(:expression_chain) do
@@ -72,17 +81,17 @@ module Rip::Parser::Rules
 
         # enum_block |
 
-        # condition_block_sequence |
+        binary_condition |
 
         # switch_block |
 
         # exception_block_sequence |
 
-        # date_time |
-        # date |
-        # time |
+        date_time |
+        date |
+        time |
 
-        # unit | # maybe
+        unit |
 
         # version | # maybe
 
@@ -92,6 +101,8 @@ module Rip::Parser::Rules
 
         string |
         regular_expression |
+
+        # markup_fragment |
 
         list |
 
