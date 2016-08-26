@@ -64,7 +64,7 @@ module Rip::Parser::Utilities
           when link.invocation?       then link.merge(callable: base)
           when link.invocation_index?
             Rip::Parser::Node.new(
-              type: :invocation_infix,
+              type: :invocation_index,
               callable: {
                 type: :property_access,
                 object: base,

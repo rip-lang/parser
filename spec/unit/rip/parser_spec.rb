@@ -42,7 +42,7 @@ RSpec.describe Rip::Parser do
           import:              2,
           integer:             1,
           invocation:          5,
-          invocation_infix:    1,
+          invocation_index:    1,
           lambda:              2,
           list:                3,
           map:                 1,
