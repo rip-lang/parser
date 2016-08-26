@@ -56,7 +56,6 @@ RSpec.describe Rip::Parser do
       end
 
       specify { expect(actual_counts).to eq(expected_counts) }
-      specify { expect(actual_counts.keys).to eq(expected_counts.keys) }
     end
 
     context 'spot-checks' do
