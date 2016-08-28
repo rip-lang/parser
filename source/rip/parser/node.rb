@@ -46,20 +46,35 @@ module Rip::Parser
       self.class.new(extra.merge(other.to_h).merge(location: location, type: other[:type] || type))
     end
 
-    def s_expression
+    def to_h(include_location: true)
       _extra = extra.map do |key, value|
-        [ key, self.class.try_convert_s_expression(value) ]
+        [ key, self.class.try_convert_to_h(value, include_location) ]
       end.to_h
 
-      { type: type }.merge(_extra)
+      if include_location
+        { location: location, type: type }
+      else
+        { type: type }
+      end.merge(_extra)
     end
 
-    def to_h
+    def traverse(&callback)
       _extra = extra.map do |key, value|
-        [ key, self.class.try_convert_to_h(value) ]
+        _value = case value
+        when Array
+          value.map do |v|
+            v.traverse(&callback)
+          end
+        when self.class
+          value.traverse(&callback)
+        else
+          value
+        end
+
+        [ key, _value ]
       end.to_h
 
-      { location: location, type: type }.merge(_extra)
+      callback.call(merge(_extra))
     end
 
     private
@@ -90,23 +105,14 @@ module Rip::Parser
       end
     end
 
-    def self.try_convert_to_h(value)
+    def self.try_convert_to_h(value, include_location)
       case value
       when Array
-        value.map(&method(:try_convert_to_h))
+        value.map do |v|
+          try_convert_to_h(v, include_location)
+        end
       when self
-        value.to_h
-      else
-        value
-      end
-    end
-
-    def self.try_convert_s_expression(value)
-      case value
-      when Array
-        value.map(&method(:try_convert_s_expression))
-      when self
-        value.s_expression
+        value.to_h(include_location: include_location)
       else
         value
       end

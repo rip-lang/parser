@@ -62,29 +62,6 @@ RSpec.describe Rip::Parser::Node do
     specify { expect(node.merge(other).to_h).to eq(location: location, type: :other_test, answer: 42, foo: :bar) }
   end
 
-  describe '#s_expression' do
-    let(:tree) { Rip::Parser::Node.new(location: location, type: :root, children: [ node ]) }
-
-    let(:expected) do
-      {
-        type: :root,
-        children: [
-          {
-            type: :test,
-            answer: 42
-          }
-        ]
-      }
-    end
-
-    specify { expect(tree.s_expression).to eq(expected) }
-    specify { expect(tree.s_expression).to be_a(Hash) }
-
-    specify { expect(tree.s_expression.keys).to eq([ :type, :children ]) }
-
-    specify { expect(tree.s_expression[:children].first).to be_a(Hash) }
-  end
-
   describe '#to_h' do
     specify { expect(node.to_h.keys).to eq([ :location, :type, :answer ]) }
 
@@ -106,6 +83,52 @@ RSpec.describe Rip::Parser::Node do
       specify { expect(tree.to_h).to eq(expected) }
       specify { expect(tree.to_h[:other]).to be_a(Hash) }
     end
+
+    context 'include_location: false' do
+      let(:tree) { Rip::Parser::Node.new(location: location, type: :root, children: [ node ]) }
+
+      let(:expected) do
+        {
+          type: :root,
+          children: [
+            {
+              type: :test,
+              answer: 42
+            }
+          ]
+        }
+      end
+
+      specify { expect(tree.to_h(include_location: false).keys).to eq([ :type, :children ]) }
+
+      specify { expect(tree.to_h(include_location: false)[:children].first.keys).to eq([ :type, :answer ]) }
+    end
+  end
+
+  describe '#traverse' do
+    let(:node_counts) { Hash.new { |h, k| h[k] = 0 } }
+
+    let(:tree) do
+      Rip::Parser::Node.new(
+        location: location,
+        type: :root,
+        answer: 42,
+        nested: [
+          { location: location, type: :leaf, data: :aaa },
+          { location: location, type: :leaf, data: :bbb },
+          { location: location, type: :leaf, data: :ccc }
+        ],
+        aux: {
+          location: location,
+          type: :auxiliary,
+          whatever: :anything
+        }
+      )
+    end
+
+    before { tree.traverse { |node| node_counts[node.type] += 1 } }
+
+    specify { expect(node_counts).to eq(root: 1, leaf: 3, auxiliary: 1) }
   end
 
   describe '.new' do
