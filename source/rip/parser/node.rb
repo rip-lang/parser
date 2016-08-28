@@ -62,6 +62,25 @@ module Rip::Parser
       { location: location, type: type }.merge(_extra)
     end
 
+    def traverse(&callback)
+      _extra = extra.map do |key, value|
+        _value = case value
+        when Array
+          value.map do |v|
+            v.traverse(&callback)
+          end
+        when self.class
+          value.traverse(&callback)
+        else
+          value
+        end
+
+        [ key, _value ]
+      end.to_h
+
+      callback.call(merge(_extra))
+    end
+
     private
 
     def method_missing(missing_method, *args, &block)

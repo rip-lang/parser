@@ -108,6 +108,32 @@ RSpec.describe Rip::Parser::Node do
     end
   end
 
+  describe '#traverse' do
+    let(:node_counts) { Hash.new { |h, k| h[k] = 0 } }
+
+    let(:tree) do
+      Rip::Parser::Node.new(
+        location: location,
+        type: :root,
+        answer: 42,
+        nested: [
+          { location: location, type: :leaf, data: :aaa },
+          { location: location, type: :leaf, data: :bbb },
+          { location: location, type: :leaf, data: :ccc }
+        ],
+        aux: {
+          location: location,
+          type: :auxiliary,
+          whatever: :anything
+        }
+      )
+    end
+
+    before { tree.traverse { |node| node_counts[node.type] += 1 } }
+
+    specify { expect(node_counts).to eq(root: 1, leaf: 3, auxiliary: 1) }
+  end
+
   describe '.new' do
     let(:tree) { Rip::Parser::Node.new(location: location, type: :root, nested: { location: location, type: :nested, foo: :bar }) }
 
