@@ -87,6 +87,8 @@ module Rip::Parser::Rules
 
         # exception_block_sequence |
 
+        # query |
+
         date_time |
         date |
         time |
