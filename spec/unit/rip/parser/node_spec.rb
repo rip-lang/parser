@@ -148,6 +148,7 @@ RSpec.describe Rip::Parser::Node do
 
   context 'nesting' do
     let(:root) { Rip::Parser::Node.new(location: location, type: :root, other: node) }
+    let(:root_with_hash) { Rip::Parser::Node.new(location: location, type: :root, other: node.to_h) }
 
     specify { expect(root.other).to eq(node) }
     specify { expect(root.other.answer).to eq(42) }
@@ -157,6 +158,11 @@ RSpec.describe Rip::Parser::Node do
 
     specify { expect(root).to respond_to(:root?) }
     specify { expect(root).to respond_to(:test?) }
+
+    specify { expect(root.parent).to be_nil }
+    specify { expect(root.other.parent).to eq(root) }
+
+    specify { expect(root_with_hash.other.parent).to eq(root) }
 
     context 'nested collection' do
       let(:nodes) do
@@ -175,6 +181,8 @@ RSpec.describe Rip::Parser::Node do
 
       specify { expect(filtered.count).to eq(1) }
       specify { expect(filtered.first.type).to eq(:special) }
+
+      specify { expect(root.others.sample.parent).to eq(root) }
     end
   end
 end
