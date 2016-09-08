@@ -1,7 +1,5 @@
 module Rip::Parser
   class Node
-    include Enumerable
-
     attr_reader :location
     attr_reader :parent
     attr_reader :type
@@ -28,16 +26,16 @@ module Rip::Parser
       end
     end
 
-    def each(&block)
-      to_h.each(&block)
-    end
-
     def key?(key)
       extra.key?(key.to_sym)
     end
 
     def keys
       extra.keys
+    end
+
+    def values
+      extra.values
     end
 
     def length

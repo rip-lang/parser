@@ -8,45 +8,20 @@ module Rip::Parser::Utilities
 
     def self.apply(origin, raw_tree)
       new.apply(raw_tree, origin: origin).tap do |tree|
-        validate_branches(tree, origin)
-        validate_leaves(tree, origin)
-      end
-    end
-
-    def self.validate_branches(tree, origin)
-      case tree
-      when Array
-        tree.each do |branch|
-          validate_branches(branch, origin)
+        tree.traverse do |node|
+          case
+          when node.values.any? { |leaf| leaf.is_a?(Parslet::Slice) }
+            raise Rip::Parser::NormalizeError.new('Unconverted parslet slice', origin, node)
+          when node.key?(:expression_chain)
+            shape = node.expression_chain.map do |key, value|
+              [ key, value.class ]
+            end.to_h
+            warn shape
+            raise Rip::Parser::NormalizeError.new('Unhandled expression_chain node', origin, node)
+          else
+            node
+          end
         end
-      when Hash, Rip::Parser::Node
-        tree.each do |_, branch|
-          validate_branches(branch, origin)
-        end
-
-        if tree.key?(:expression_chain)
-          shape = tree[:expression_chain].map do |key, value|
-            [ key, value.class ]
-          end.to_h
-          warn shape
-          raise Rip::Parser::NormalizeError.new('Unhandled expression_chain node', origin, tree)
-        end
-      end
-    end
-
-    def self.validate_leaves(tree, origin)
-      case tree
-      when Array
-        tree.each do |branch|
-          validate_leaves(branch, origin)
-        end
-      when Rip::Parser::Node
-        tree.each do |_, branch|
-          validate_leaves(branch, origin)
-        end
-      when Parslet::Slice
-        warn tree
-        raise Rip::Parser::NormalizeError.new('Unconverted parslet slice', origin, tree)
       end
     end
 

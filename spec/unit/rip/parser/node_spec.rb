@@ -27,14 +27,6 @@ RSpec.describe Rip::Parser::Node do
     end
   end
 
-  describe '#each' do
-    specify do
-      expect do |x|
-        node.each(&x)
-      end.to yield_successive_args([ :location, location ], [ :type, :test ], [ :answer, 42 ])
-    end
-  end
-
   describe '#key?' do
     specify { expect(node.key?(:answer)).to be(true) }
     specify { expect(node.key?(:foo)).to be(false) }
@@ -44,6 +36,10 @@ RSpec.describe Rip::Parser::Node do
 
   describe '#keys' do
     specify { expect(node.keys).to match_array([ :answer ]) }
+  end
+
+  describe '#values' do
+    specify { expect(node.values).to match_array([ 42 ]) }
   end
 
   describe '#length' do
