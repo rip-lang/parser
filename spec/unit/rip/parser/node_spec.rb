@@ -27,14 +27,6 @@ RSpec.describe Rip::Parser::Node do
     end
   end
 
-  describe '#each' do
-    specify do
-      expect do |x|
-        node.each(&x)
-      end.to yield_successive_args([ :location, location ], [ :type, :test ], [ :answer, 42 ])
-    end
-  end
-
   describe '#key?' do
     specify { expect(node.key?(:answer)).to be(true) }
     specify { expect(node.key?(:foo)).to be(false) }
@@ -44,6 +36,10 @@ RSpec.describe Rip::Parser::Node do
 
   describe '#keys' do
     specify { expect(node.keys).to match_array([ :answer ]) }
+  end
+
+  describe '#values' do
+    specify { expect(node.values).to match_array([ 42 ]) }
   end
 
   describe '#length' do
@@ -148,6 +144,7 @@ RSpec.describe Rip::Parser::Node do
 
   context 'nesting' do
     let(:root) { Rip::Parser::Node.new(location: location, type: :root, other: node) }
+    let(:root_with_hash) { Rip::Parser::Node.new(location: location, type: :root, other: node.to_h) }
 
     specify { expect(root.other).to eq(node) }
     specify { expect(root.other.answer).to eq(42) }
@@ -157,6 +154,11 @@ RSpec.describe Rip::Parser::Node do
 
     specify { expect(root).to respond_to(:root?) }
     specify { expect(root).to respond_to(:test?) }
+
+    specify { expect(root.parent).to be_nil }
+    specify { expect(root.other.parent).to eq(root) }
+
+    specify { expect(root_with_hash.other.parent).to eq(root) }
 
     context 'nested collection' do
       let(:nodes) do
@@ -175,6 +177,8 @@ RSpec.describe Rip::Parser::Node do
 
       specify { expect(filtered.count).to eq(1) }
       specify { expect(filtered.first.type).to eq(:special) }
+
+      specify { expect(root.others.sample.parent).to eq(root) }
     end
   end
 end

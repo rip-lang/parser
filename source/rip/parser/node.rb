@@ -1,16 +1,16 @@
 module Rip::Parser
   class Node
-    include Enumerable
-
     attr_reader :location
+    attr_reader :parent
     attr_reader :type
     attr_reader :extra
 
-    def initialize(location:, type:, **extra)
+    def initialize(location:, parent: nil, type:, **extra)
       @location = location
+      @parent = parent
       @type = type
       @extra = extra.inject({}) do |memo, (key, value)|
-        memo.merge(key => self.class.try_convert(value))
+        memo.merge(key => self.class.try_convert(value, self))
       end
     end
 
@@ -26,16 +26,16 @@ module Rip::Parser
       end
     end
 
-    def each(&block)
-      to_h.each(&block)
-    end
-
     def key?(key)
       extra.key?(key.to_sym)
     end
 
     def keys
       extra.keys
+    end
+
+    def values
+      extra.values
     end
 
     def length
@@ -74,7 +74,7 @@ module Rip::Parser
         [ key, _value ]
       end.to_h
 
-      callback.call(merge(_extra))
+      callback.call(merge(_extra.merge(parent: parent)))
     end
 
     private
@@ -94,12 +94,16 @@ module Rip::Parser
       key?(name) || name.to_s.end_with?('?')
     end
 
-    def self.try_convert(value)
+    def self.try_convert(value, parent)
       case value
       when Array
-        value.map(&method(:try_convert))
+        value.map do |v|
+          try_convert(v, parent)
+        end
       when Hash
-        new(value)
+        new(value.merge(parent: parent))
+      when self
+        new(value.to_h.merge(parent: parent))
       else
         value
       end
